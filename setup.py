@@ -10,7 +10,7 @@ setup(
 	author = "Alexander Leidinger",
 	author_email = "Alexander@Leidinger.net",
 	url = "http://lame.sourceforge.net/",
-	licence = "BSD",
+	license = "BSD",
 	ext_modules = [ 
 		Extension("lame",
 			["lamemodule.c"],
