@@ -24,6 +24,8 @@
  *   SUCH DAMAGE.
  */
 
+/* $Id$ */
+
 
 #include <Python.h>
 #include <lame/lame.h>

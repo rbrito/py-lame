@@ -26,3 +26,6 @@ Build module:
 	make -f Makefile.pre.in boot
 	make
 
+
+-- 
+$Id$
