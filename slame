@@ -41,7 +41,7 @@ import wave, aifc, sunau
 import lame
 
 try:
-    import _gtk, gtk, GTK, threading#, time
+    import gtk, threading#, time
     have_gtk = 1
     data_timeout  = 400
     event_timeout = .5
@@ -330,8 +330,10 @@ def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate, use_gui):
 	    print ''
 	
 	if lame.VBR_DEFAULT == vbr:
-	    print '\r%9d of %9d bytes (%.1f kbps)' %      (
-	          processed_bytes, raw_size, average_rate ),
+	    print '\r%9d of %9d bytes (%04.1f%%, %.1f kbps)' %      (
+	          processed_bytes, raw_size,
+		  float(processed_bytes)/raw_size*100,
+		  average_rate ),
 	else:
 	    # ABR & CBR
 	    print '\r%9d of %9d bytes' %    (
