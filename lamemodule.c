@@ -2313,8 +2313,8 @@ static char Mp3enctype__doc__[] =
 ;
 
 static PyTypeObject Mp3enctype = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                              /*ob_size*/
+        PyObject_HEAD_INIT(NULL)
+       0,                              /*ob_size*/
         "lame_encode",                  /*tp_name*/
         sizeof(mp3encobject),           /*tp_basicsize*/
         0,                              /*tp_itemsize*/
