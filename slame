@@ -552,9 +552,6 @@ def main():
         print 'Sorry, no support for != 16bit samples.'
         sys.exit(1)
 
-    # 1 sample = 2 bytes
-    num_bytes_per_enc_run = nchannels * samplerate * sampwidth
-
     # mp3file
     mp3 = lame.init()
     mp3_file = open(mp3_name, "wb+")
@@ -573,10 +570,15 @@ def main():
 	data_event = threading.Event()
 	gui_thread = threading.Thread(name='GUI', target=init_gtk, args=(in_file, mp3_name, vbr, bitrate))
 	gui_thread.start()
+
+    num_samples_per_enc_run = samplerate
+
+    # 1 sample = 2 bytes
+    num_bytes_per_enc_run = nchannels * num_samples_per_enc_run * sampwidth
     
     processed_bytes = 0
     while 0 == abort:
-        frames = sound.readframes(samplerate)
+        frames = sound.readframes(num_samples_per_enc_run)
         condition = num_bytes_per_enc_run != len(frames)
 	if 1 == condition:
 	    abort = condition
