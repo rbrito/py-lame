@@ -66,7 +66,7 @@ staticforward PyTypeObject Mp3enctype;
 /* ---------------------------------------------------------------- */
 
 static char mp3enc_encode__doc__[] = 
-""
+"Not implemented."
 ;
 
 static PyObject *
@@ -82,7 +82,9 @@ mp3enc_encode(self, args)
 
 
 static char mp3enc_encode_interleaved__doc__[] = 
-"Encode interleaved audio data (2 channels, 16 bit per sample)"
+"Encode interleaved audio data (2 channels, 16 bit per sample).\n"
+"Parameter: audiodata\n"
+"C function: lame_encode_buffer_interleaved()\n"
 ;
 static PyObject *
 mp3enc_encode_interleaved(self, args)
@@ -154,7 +156,9 @@ mp3enc_encode_interleaved(self, args)
 
 
 static char mp3enc_flush_buffers__doc__[] = 
-"Encode remaining samples and flush the MP3 buffer."
+"Encode remaining samples and flush the MP3 buffer.\n"
+"No parameters.\n"
+"C function: lame_encode_flush()\n"
 ;
 
 static PyObject *
@@ -207,7 +211,9 @@ mp3enc_flush_buffers(self, args)
 
 
 static char mp3enc_delete__doc__[] = 
-"Delete a MP3 encoder object"
+"Delete a MP3 encoder object.\n"
+"No parameters.\n"
+"C function: lame_close()\n"
 ;
 
 static PyObject *
@@ -234,7 +240,9 @@ mp3enc_delete(self, args)
 
 
 static char mp3enc_init_parameters__doc__[] =
-"Initializates the internal state of LAME."
+"Initializates the internal state of LAME.\n"
+"No paramteres. First you have to use the set_*() functions.\n"
+"C function: lame_init_params()\n"
 ;
 
 static PyObject *
@@ -261,7 +269,10 @@ mp3enc_init_parameters(self, args)
 
 
 static char mp3enc_set_num_samples__doc__[] =
-"Set the number of samples. [default: 2^32-1]"
+"Set the number of samples.\n"
+"Default: 2^32-1\n"
+"Parameter: int\n"
+"C function: lame_set_num_samples()\n"
 ;
 
 static PyObject *
@@ -285,7 +296,10 @@ mp3enc_set_num_samples(self, args)
 
 
 static char mp3enc_set_in_samplerate__doc__[] =
-"Set samplerate of infile. [default: 44100 Hz]"
+"Set samplerate of infile (in Hz).\n"
+"Default: 44100\n"
+"Parameter: int\n"
+"C function: lame_set_in_samplerate()\n"
 ;
 
 static PyObject *
@@ -309,7 +323,10 @@ mp3enc_set_in_samplerate(self, args)
 
 
 static char mp3enc_set_num_channels__doc__[] =
-"Set number of channels of infile. [default: 2]"
+"Set number of channels of infile.\n"
+"Default: 2\n"
+"Parameter: int\n"
+"C function: lame_set_num_channels()\n"
 ;
 
 static PyObject *
@@ -336,7 +353,10 @@ mp3enc_set_num_channels(self, args)
 
 
 static char mp3enc_set_scale__doc__[] =
-"Scale the input by this amount before encoding. [default: 0 (disabled)]"
+"Scale the input by this amount before encoding.\n"
+"Default: 0 (disabled)\n"
+"Parameter: float\n"
+"C function: lame_set_scale()\n"
 ;
 
 static PyObject *
@@ -360,7 +380,10 @@ mp3enc_set_scale(self, args)
 
 
 static char mp3enc_set_scale_left__doc__[] =
-"Scale channel 0 (left) of the input by this amount before encoding. [default: 0 (disabled)]"
+"Scale channel 0 (left) of the input by this amount before encoding.\n"
+"Default: 0 (disabled)\n"
+"Parameter: float\n"
+"C function: lame_set_scale_left()\n"
 ;
 
 static PyObject *
@@ -384,7 +407,10 @@ mp3enc_set_scale_left(self, args)
 
 
 static char mp3enc_set_scale_right__doc__[] =
-"Scale channel 1 (right) of the input by this amount before encoding. [default: 0 (disabled)]"
+"Scale channel 1 (right) of the input by this amount before encoding.\n"
+"Default: 0 (disabled)\n"
+"Parameter: float\n"
+"C function: lame_set_scale_right()\n"
 ;
 
 static PyObject *
@@ -408,7 +434,10 @@ mp3enc_set_scale_right(self, args)
 
 
 static char mp3enc_set_out_samplerate__doc__[] =
-"Set output samplerate in Hz. [default: 0 (let LAME choose one)]"
+"Set output samplerate (in Hz).\n"
+"Default: 0 (let LAME choose one)\n"
+"Parameter: int\n"
+"C function: lame_set_out_samplerate()\n"
 ;
 
 static PyObject *
@@ -432,7 +461,10 @@ mp3enc_set_out_samplerate(self, args)
 
 
 static char mp3enc_set_analysis__doc__[] =
-"Collect data for an MP3 frame analyzer. [default: 0 (disabled)]"
+"Collect data for an MP3 frame analyzer.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_analysis\n"
 ;
 
 static PyObject *
@@ -456,7 +488,10 @@ mp3enc_set_analysis(self, args)
 
 
 static char mp3enc_set_write_vbr_tag__doc__[] =
-"Write a Xing VBR header frame. [default: 0 (CBR) / 1 (VBR/ABR)]"
+"Write a Xing VBR header frame.\n"
+"Default: 1\n"
+"Paramter: int\n"
+"C function: lame_set_bWriteVbrTag()\n"
 ;
 
 static PyObject *
@@ -481,7 +516,10 @@ mp3enc_set_write_vbr_tag(self, args)
 
 #if 0    /* encode only at the moment! */
 static char mp3enc_set_decode_only__doc__[] =
-"Use LAME to decode MP3 to WAVE. [default: 0 (disabled)]"
+"Use LAME to decode MP3 to WAVE.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_decode_only()\n"
 ;
 
 static PyObject *
@@ -506,7 +544,10 @@ mp3enc_set_decode_only(self, args)
 
 
 static char mp3enc_set_quality__doc__[] =
-"Choose quality. [0: best, 9: worst]"
+"Choose quality.\n"
+"Range: 0 (best) - 9 (worst)\n"
+"Parameter: int\n"
+"C function: lame_set_quality()\n"
 ;
 
 static PyObject *
@@ -530,7 +571,10 @@ mp3enc_set_quality(self, args)
 
 
 static char mp3enc_set_mode__doc__[] =
-"Set mode lame.STEREO, lame.JOINT_STEREO, lame.DUAL, lame.MONO). [default: let LAME choose]"
+"Set mode.\n"
+"Default: let LAME choose\n"
+"Parameter: lame.STEREO, lame.JOINT_STEREO, lame.DUAL, lame.MONO\n"
+"C function: lame_set_mode\n"
 ;
 
 static PyObject *
@@ -554,7 +598,10 @@ mp3enc_set_mode(self, args)
 
 
 static char mp3enc_set_mode_automs__doc__[] =
-"Use a M/S mode with a switching threshold based on compression ratio. [default: 0 (disabled)]"
+"Use a M/S mode with a switching threshold based on compression ratio.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_mode_automs()\n"
 ;
 
 static PyObject *
@@ -578,7 +625,10 @@ mp3enc_set_mode_automs(self, args)
 
 
 static char mp3enc_set_force_ms__doc__[] =
-"Force M/S for all frames (testing only). [default: 0 (disabled)]"
+"Force M/S for all frames (purpose: for testing only).\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_force_ms()\n"
 ;
 
 static PyObject *
@@ -602,7 +652,10 @@ mp3enc_set_force_ms(self, args)
 
 
 static char mp3enc_set_free_format__doc__[] =
-"Use free format. [default: 0 (disabled)]"
+"Use free format.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_free_format()\n"
 ;
 
 static PyObject *
@@ -626,7 +679,10 @@ mp3enc_set_free_format(self, args)
 
 
 static char mp3enc_set_bitrate__doc__[] =
-"Set bitrate. [default: 128]"
+"Set bitrate.\n"
+"Default: 128\n"
+"Paramter: int\n"
+"C function: lame_set_brate()\n"
 ;
 
 static PyObject *
@@ -650,7 +706,10 @@ mp3enc_set_bitrate(self, args)
 
 
 static char mp3enc_set_compression_ratio__doc__[] =
-"Set vompression ratio. [default: 11.0]"
+"Set compression ratio.\n"
+"Default: 11.0\n"
+"Paramter: float\n"
+"C function: lame_set_compression_ratio()\n"
 ;
 
 static PyObject *
@@ -673,8 +732,67 @@ mp3enc_set_compression_ratio(self, args)
 }
 
 
+static char mp3enc_set_preset__doc__[] =
+"Set a buildin preset.\n"
+"Paramter: int (bitrate) or lame.PRESET_R3MIX, lame.PRESET_STANDARD,\n"
+"          lame.PRESET_STANDARD_FAST, lame.PRESET_EXTREME,\n"
+"          lame.PRESET_EXTREME_FAST, lame.PRESET_INSANE,\n"
+"          lame.PRESET_MEDIUM, lame.PRESET_MEDIUM_FAST\n"
+"C function: lame_set_preset()\n"
+;
+
+static PyObject *
+mp3enc_set_preset(self, args)
+    mp3encobject *self;
+    PyObject *args;
+{
+    int preset;
+    
+    if ( NULL == PyArg_ParseTuple( args, "i", &preset ) )
+        return NULL;
+    
+    if ( 0 > lame_set_preset( self->gfp, preset ) ) {
+        PyErr_SetString( (PyObject *)self, "can't set preset" );
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
+static char mp3enc_set_asm_optimizations__doc__[] =
+"Disable specific asm optimizations (if compiled in).\n"
+"Paramters: lame.ASM_MMX, lame.ASM_3DNOW, lame.ASM_SSE;\n"
+"           int (0 = disable)\n"
+"C function: lame_set_asm_optimizations()\n"
+;
+
+static PyObject *
+mp3enc_set_asm_optimizations(self, args)
+    mp3encobject *self;
+    PyObject *args;
+{
+    int val1, val2;
+    
+    if ( NULL == PyArg_ParseTuple( args, "ii", &val1, &val2 ) )
+        return NULL;
+    
+    if ( 0 > lame_set_asm_optimizations( self->gfp, val1, val2 ) ) {
+        PyErr_SetString( (PyObject *)self, "can't set asm optimizations" );
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
 static char mp3enc_set_copyright__doc__[] =
-"Set copyright bit. [default: 0 (disabled)]"
+"Set copyright bit.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_copyright()\n"
 ;
 
 static PyObject *
@@ -698,7 +816,10 @@ mp3enc_set_copyright(self, args)
 
 
 static char mp3enc_set_original__doc__[] =
-"Set original bit. [default: 1 (enabled)]"
+"Set original bit.\n"
+"Default: 1 (enabled)\n"
+"Parameter: int\n"
+"C function: lame_set_original()\n"
 ;
 
 static PyObject *
@@ -722,7 +843,10 @@ mp3enc_set_original(self, args)
 
 
 static char mp3enc_set_error_protection__doc__[] =
-"Add error protection (uses 2 bytes from each frame for CRC). [default: 0 (disabled)]"
+"Add error protection (uses 2 bytes from each frame for CRC).\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_error_protection()\n"
 ;
 
 static PyObject *
@@ -746,7 +870,10 @@ mp3enc_set_error_protection(self, args)
 
 
 static char mp3enc_set_padding_type__doc__[] =
-"Set padding type (lame.PAD_NO, lame.PAD_ALL, lame.PAD_ADJUST). [default: lame.PAD_ADJUST]"
+"Set padding type.\n"
+"Default: lame.PAD_ADJUST\n"
+"Paramter: lame.PAD_NO, lame.PAD_ALL, lame.PAD_ADJUST\n"
+"C function: lame_set_padding_type()\n"
 ;
 
 static PyObject *
@@ -770,7 +897,10 @@ mp3enc_set_padding_type(self, args)
 
 
 static char mp3enc_set_extension__doc__[] =
-"Set extension bit (meaningless). [default: 0 (disabled)]"
+"Set extension bit (meaningless).\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_extension()\n"
 ;
 
 static PyObject *
@@ -794,7 +924,10 @@ mp3enc_set_extension(self, args)
 
 
 static char mp3enc_set_strict_iso__doc__[] =
-"Enforce strict ISO compliance. [default: 0 (disabled)]"
+"Enforce strict ISO compliance.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_strict_ISO()\n"
 ;
 
 static PyObject *
@@ -818,7 +951,10 @@ mp3enc_set_strict_iso(self, args)
 
 
 static char mp3enc_set_disable_reservoir__doc__[] =
-"Disable the bit reservoir (for testing only). [default: 0 (disabled)]"
+"Disable the bit reservoir (purpose: for testing only).\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_disable_reservoir()\n"
 ;
 
 static PyObject *
@@ -842,7 +978,10 @@ mp3enc_set_disable_reservoir(self, args)
 
 
 static char mp3enc_set_exp_quantization__doc__[] =
-"Select a different 'best quantization' function (experimental!). [default: 0]"
+"Select a different 'best quantization' function (experimental!).\n"
+"Default: 0\n"
+"Parameter: int\n"
+"C function: lame_set_experimentalX()\n"
 ;
 
 static PyObject *
@@ -866,7 +1005,10 @@ mp3enc_set_exp_quantization(self, args)
 
 
 static char mp3enc_set_exp_y__doc__[] =
-"Experimental option. [default: 0 (disabled)]"
+"Experimental option.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_experimentalY()\n"
 ;
 
 static PyObject *
@@ -890,7 +1032,10 @@ mp3enc_set_exp_y(self, args)
 
 
 static char mp3enc_set_exp_z__doc__[] =
-"Experimantal option. [default: 0 (disabled)]"
+"Experimantal option.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_experimentalZ()\n"
 ;
 
 static PyObject *
@@ -914,7 +1059,10 @@ mp3enc_set_exp_z(self, args)
 
 
 static char mp3enc_set_exp_nspsytune__doc__[] =
-"Use Naoki's psycho acoustic model instead of GPSYCHO (experimental!). [default: 0 (disabled)]"
+"Use Naoki's psycho acoustic model instead of GPSYCHO (experimental!).\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_exp_nspsytune()\n"
 ;
 
 static PyObject *
@@ -938,7 +1086,11 @@ mp3enc_set_exp_nspsytune(self, args)
 
 
 static char mp3enc_set_vbr__doc__[] =
-"Set VBR mode (lame.VBR_OFF, lame.VBR_OLD, lame.VBR_ABR, lame.VBR_NEW, lame.VBR_DEFAULT). [default: lame.VBR_OFF (disabled)]"
+"Set VBR mode.\n"
+"Default: lame.VBR_OFF (disabled)\n"
+"Parameter: lame.VBR_OFF, lame.VBR_OLD, lame.VBR_ABR, lame.VBR_NEW,\n"
+"           lame.VBR_DEFAULT\n"
+"C function: lame_set_VBR()\n"
 ;
 
 static PyObject *
@@ -962,7 +1114,10 @@ mp3enc_set_vbr(self, args)
 
 
 static char mp3enc_set_vbr_quality__doc__[] =
-"Set VBR quality level (0: highest, 9: lowest). [default: 4]"
+"Set VBR quality level.\n"
+"Default: 4\n"
+"Parameter: 0 (highest) - 9 (lowest)\n"
+"C function: lame_set_VBR_q()\n"
 ;
 
 static PyObject *
@@ -986,7 +1141,10 @@ mp3enc_set_vbr_quality(self, args)
 
 
 static char mp3enc_set_abr_bitrate__doc__[] =
-"Set ABR bitrate. [default: 128]"
+"Set ABR bitrate.\n"
+"Default: 128\n"
+"Parameter: int\n"
+"C function: lame_set_VBR_mean_bitrate_kbps()\n"
 ;
 
 static PyObject *
@@ -1010,7 +1168,10 @@ mp3enc_set_abr_bitrate(self, args)
 
 
 static char mp3enc_set_vbr_min_bitrate__doc__[] =
-"Set minimal bitrate for ABR/VBR. [default: lowest possible bitrate]"
+"Set minimal bitrate for ABR/VBR.\n"
+"Default: lowest possible bitrate\n"
+"Parameter: int\n"
+"C function: lame_set_VBR_min_bitrate_kbps()\n"
 ;
 
 static PyObject *
@@ -1034,7 +1195,10 @@ mp3enc_set_vbr_min_bitrate(self, args)
 
 
 static char mp3enc_set_vbr_max_bitrate__doc__[] =
-"Set maximal bitrate for ABR/VBR. [default: highest possible bitrate]"
+"Set maximal bitrate for ABR/VBR.\n"
+"Default: highest possible bitrate\n"
+"Parameter: int\n"
+"C function: lame_set_VBR_max_bitrate_kbps()\n"
 ;
 
 static PyObject *
@@ -1058,7 +1222,11 @@ mp3enc_set_vbr_max_bitrate(self, args)
 
 
 static char mp3enc_set_vbr_min_enforce__doc__[] =
-"Enforce minimum bitrate for ABR/VBR, normally it will be violated for analog silence. [default: 0 (disabled)]"
+"Enforce minimum bitrate for ABR/VBR, normally it will be violated for\n"
+"analog silence.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_VBR_hard_min()\n"
 ;
 
 static PyObject *
@@ -1082,7 +1250,10 @@ mp3enc_set_vbr_min_enforce(self, args)
 
 
 static char mp3enc_set_lowpass_frequency__doc__[] =
-"Lowpass frequency in Hz (-1: disabled). [default: 0 (LAME chooses)]"
+"Lowpass frequency in Hz (-1: disabled).\n"
+"Default: 0 (LAME chooses)\n"
+"Parameter: int\n"
+"C function: lame_set_lowpassfreq()\n"
 ;
 
 static PyObject *
@@ -1106,7 +1277,10 @@ mp3enc_set_lowpass_frequency(self, args)
 
 
 static char mp3enc_set_lowpass_width__doc__[] =
-"Width of transition band in Hz. [default: one polyphase filter band]"
+"Width of transition band in Hz.\n"
+"Default: one polyphase filter band\n"
+"Parameter: int\n"
+"C function: lame_set_lowpasswidth()\n"
 ;
 
 static PyObject *
@@ -1130,7 +1304,10 @@ mp3enc_set_lowpass_width(self, args)
 
 
 static char mp3enc_set_highpass_frequency__doc__[] =
-"Highpass frequency in Hz (-1: disabled). [default: 0 (LAME chooses)]"
+"Highpass frequency in Hz (-1: disabled).\n"
+"Default: 0 (LAME chooses)\n"
+"Parameter: int\n"
+"C function: lame_set_highpassfreq()\n"
 ;
 
 static PyObject *
@@ -1154,7 +1331,10 @@ mp3enc_set_highpass_frequency(self, args)
 
 
 static char mp3enc_set_highpass_width__doc__[] =
-"Set width of highpass in Hz. [default: one polyphase filter band]"
+"Set width of highpass in Hz.\n"
+"Default: one polyphase filter band\n"
+"Parameter: int\n"
+"C function: lame_set_highpasswidth()\n"
 ;
 
 static PyObject *
@@ -1178,7 +1358,10 @@ mp3enc_set_highpass_width(self, args)
 
 
 static char mp3enc_set_ath_for_masking_only__doc__[] =
-"Only use ATH for masking. [default: 0 (disabled)]"
+"Only use ATH for masking.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_ATHonly()\n"
 ;
 
 static PyObject *
@@ -1202,7 +1385,10 @@ mp3enc_set_ath_for_masking_only(self, args)
 
 
 static char mp3enc_set_ath_for_short_only__doc__[] =
-"Only use ATH for short blocks. [default: 0 (disabled)]"
+"Only use ATH for short blocks.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_ATHshort()\n"
 ;
 
 static PyObject *
@@ -1226,7 +1412,10 @@ mp3enc_set_ath_for_short_only(self, args)
 
 
 static char mp3enc_set_ath_disable__doc__[] =
-"Disable ATH. [default: 0 (use ATH)]"
+"Disable ATH.\n"
+"Default: 0 (use ATH)\n"
+"Parameter: int\n"
+"C function: lame_set_noATH()\n"
 ;
 
 static PyObject *
@@ -1250,7 +1439,10 @@ mp3enc_set_ath_disable(self, args)
 
 
 static char mp3enc_set_ath_type__doc__[] =
-"Select type of ATH. XXX:[default: ]"
+"Select type of ATH.\n"
+"Default: XXX\n"
+"Parameter: int  XXX should be lame.YYY\n"
+"C function: lame_set_ATHtype()\n"
 ;
 
 static PyObject *
@@ -1274,7 +1466,10 @@ mp3enc_set_ath_type(self, args)
 
 
 static char mp3enc_set_ath_lower__doc__[] =
-"Lower ATH by this many dB. [defult: 0]"
+"Lower ATH by this many dB.\n"
+"Default: 0\n"
+"Parameter: int\n"
+"C function: lame_set_ATHlower()\n"
 ;
 
 static PyObject *
@@ -1298,7 +1493,10 @@ mp3enc_set_ath_lower(self, args)
 
 
 static char mp3enc_set_athaa_type__doc__[] =
-"Select type of ATH adaptive adjustment. [XXX:default: ]"
+"Select type of ATH adaptive adjustment.\n"
+"Default: XXX\n"
+"Parameter: int  XXX should be lame.YYY\n"
+"C function: lame_set_athaa_type()\n"
 ;
 
 static PyObject *
@@ -1322,7 +1520,10 @@ mp3enc_set_athaa_type(self, args)
 
 
 static char mp3enc_set_athaa_loudness_approximation__doc__[] =
-"Choose the loudness approximation used by the ATH adaptive auto leveling. [default: XXX]"
+"Choose the loudness approximation used by the ATH adaptive auto leveling.\n"
+"Default: XXX\n"
+"Parameter: int  XXX should be lame.YYY\n"
+"C function: lame_set_athaa_loudapprox()\n"
 ;
 
 static PyObject *
@@ -1346,7 +1547,10 @@ mp3enc_set_athaa_loudness_approximation(self, args)
 
 
 static char mp3enc_set_athaa_sensitivity__doc__[] =
-"Adjust the point below which adaptive ATH level adjustment occurs (in dB). [default: 0]"
+"Adjust the point below which adaptive ATH level adjustment occurs (in dB).\n"
+"Default: 0\n"
+"Parameter: int\n"
+"C function: lame_set_athaa_sensitivity()\n"
 ;
 
 static PyObject *
@@ -1370,7 +1574,10 @@ mp3enc_set_athaa_sensitivity(self, args)
 
 
 static char mp3enc_set_predictability_limit__doc__[] =
-"Predictability limit for the ISO tonality formula. [default: XXX]"
+"Predictability limit for the ISO tonality formula.\n"
+"Default: XXX\n"
+"Parameter: int\n"
+"C function: lame_set_cwlimit()\n"
 ;
 
 static PyObject *
@@ -1394,7 +1601,10 @@ mp3enc_set_predictability_limit(self, args)
 
 
 static char mp3enc_set_allow_blocktype_difference__doc__[] =
-"Allow blocktypes to differ between channels. [default: 0 (disabled) for JOINT_STEREO, 1 (enabled) for STEREO]"
+"Allow blocktypes to differ between channels.\n"
+"Default: 0 (disabled) for JOINT_STEREO, 1 (enabled) for STEREO\n"
+"Parameter: int\n"
+"C function: lame_set_allow_diff_short()\n"
 ;
 
 static PyObject *
@@ -1418,7 +1628,10 @@ mp3enc_set_allow_blocktype_difference(self, args)
 
 
 static char mp3enc_set_use_temporal_masking__doc__[] =
-"Use temporal masking. [default: 1 (enabled)]"
+"Use temporal masking.\n"
+"Default: 1 (enabled)\n"
+"Parameter: int\n"
+"C function: lame_set_useTemporal()\n"
 ;
 
 static PyObject *
@@ -1442,7 +1655,10 @@ mp3enc_set_use_temporal_masking(self, args)
 
 
 static char mp3enc_set_inter_channel_ratio__doc__[] =
-"Set inter channel ratio. [default: XXX]"
+"Set inter channel ratio.\n"
+"Default: XXX\n"
+"Parameter: float\n"
+"C function: lame_set_interChRatio()\n"
 ;
 
 static PyObject *
@@ -1466,7 +1682,10 @@ mp3enc_set_inter_channel_ratio(self, args)
 
 
 static char mp3enc_set_substep__doc__[] =
-"Set substep shaping method. [default: XXX]"
+"Set substep shaping method.\n"
+"Default: XXX\n"
+"Parameter: int  XXX should be lame.YYY\n"
+"C function: lame_set_substep()\n"
 ;
 
 static PyObject *
@@ -1490,7 +1709,10 @@ mp3enc_set_substep(self, args)
 
 
 static char mp3enc_set_no_short_blocks__doc__[] =
-"Disable the use of short blocks. [default: 0 (use short blocks)]"
+"Disable the use of short blocks.\n"
+"Default: 0 (use short blocks)\n"
+"Parameter: int\n"
+"C function: lame_set_no_short_blocks()\n"
 ;
 
 static PyObject *
@@ -1514,7 +1736,10 @@ mp3enc_set_no_short_blocks(self, args)
 
 
 static char mp3enc_set_force_short_blocks__doc__[] =
-"Force the use of short blocks. [default: 0 (disabled)]"
+"Force the use of short blocks.\n"
+"Default: 0 (disabled)\n"
+"Parameter: int\n"
+"C function: lame_set_force_short_blocks()\n"
 ;
 
 static PyObject *
@@ -1538,7 +1763,8 @@ mp3enc_set_force_short_blocks(self, args)
 
 
 static char mp3enc_get_frame_num__doc__[] =
-"Get number of encoded frames so far."
+"Get number of encoded frames so far.\n"
+"C function: lame_get_frameNum()"
 ;
 
 static PyObject *
@@ -1558,7 +1784,9 @@ mp3enc_get_frame_num(self, args)
 
 
 static char mp3enc_get_total_frames__doc__[] =
-"Get estimate of the total number of frames to be encoded, only valid if the calling program set num_samples."
+"Get estimate of the total number of frames to be encoded, only valid if\n"
+"the calling program set num_samples.\n"
+"C function: lame_get_totalframes()\n"
 ;
 
 static PyObject *
@@ -1578,7 +1806,8 @@ mp3enc_get_total_frames(self, args)
 
 
 static char mp3enc_get_bitrate_histogram__doc__[] =
-"Get tuple of histogram dictionaries with bitrate/value keys."
+"Get tuple of histogram dictionaries with bitrate/value keys.\n"
+"C functions: lame_bitrate_kbps(), lame_bitrate_hist()\n"
 ;
 
 static PyObject *
@@ -1628,7 +1857,8 @@ mp3enc_get_bitrate_histogram(self, args)
 
 
 static char mp3enc_get_bitrate_values__doc__[] =
-"Get tuple of possible bitrates."
+"Get tuple of possible bitrates.\n"
+"C function: lame_bitrate_kbps()\n"
 ;
 
 static PyObject *
@@ -1662,7 +1892,8 @@ mp3enc_get_bitrate_values(self, args)
 
 
 static char mp3enc_get_bitrate_stereo_mode_histogram__doc__[] =
-"Get tuple of dictionaries for stereo mode histogram with LR/LR-I/MS/MS-I keys."
+"Get tuple of dictionaries for stereo mode histogram with LR/LR-I/MS/MS-I keys.\n"
+"C function: lame_bitrate_stereo_mode_hist()\n"
 ;
 
 static PyObject *
@@ -1738,7 +1969,8 @@ mp3enc_get_bitrate_stereo_mode_histogram(self, args)
 
 
 static char mp3enc_get_stereo_mode_histogram__doc__[] =
-"Get dictionary for stereo mode histogram with LR/LR-I/MS/MS-I keys."
+"Get dictionary for stereo mode histogram with LR/LR-I/MS/MS-I keys.\n"
+"C function: lame_stereo_mode_hist()\n"
 ;
 
 static PyObject *
@@ -1762,7 +1994,9 @@ mp3enc_get_stereo_mode_histogram(self, args)
 
 
 static char mp3enc_set_exp_msfix__doc__[] =
-"Undocumented, don't use."
+"Undocumented, don't use.\n"
+"Parameter: double\n"
+"C function: lame_set_msfix()\n"
 ;
 
 extern void lame_set_msfix( lame_t, double );
@@ -1785,7 +2019,9 @@ mp3enc_set_exp_msfix(self, args)
 
 
 static char mp3enc_set_exp_preset_expopts__doc__[] =
-"Undocumented, don't use."
+"Undocumented, don't use.\n"
+"Parameter: int\n"
+"C function: lame_set_preset_expopts()\n"
 ;
 
 extern int lame_set_preset_expopts( lame_t, int );
@@ -1808,7 +2044,9 @@ mp3enc_set_exp_preset_expopts(self, args)
 
 
 static char mp3enc_write_tags__doc__[] =
-"Write TAG's."
+"Write ID3v1 TAG's.\n"
+"Parameter: file\n"
+"C function: lame_mp3_tags_fid()\n"
 ;
 
 static PyObject *
@@ -1881,6 +2119,10 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_bitrate__doc__                       },
     {"set_compression_ratio", (PyCFunction)mp3enc_set_compression_ratio,
 	METH_VARARGS, mp3enc_set_compression_ratio__doc__             },
+    {"set_preset", (PyCFunction)mp3enc_set_preset,
+	METH_VARARGS, mp3enc_set_preset__doc__                        },
+    {"set_asm_optimizations", (PyCFunction)mp3enc_set_asm_optimizations,
+	METH_VARARGS, mp3enc_set_asm_optimizations__doc__             },
     {"set_copyright", (PyCFunction)mp3enc_set_copyright,
 	METH_VARARGS, mp3enc_set_copyright__doc__                     },
     {"set_original", (PyCFunction)mp3enc_set_original,
@@ -2212,23 +2454,58 @@ initlame()
     tempobj = PyInt_FromLong(1);
     PyDict_SetItemString(d, "JOINT_STEREO", tempobj);
     PyDict_SetItemString(d, "PAD_ALL", tempobj);
+    PyDict_SetItemString(d, "ASM_MMX", tempobj);
     Py_DECREF(tempobj);
     
     tempobj = PyInt_FromLong(2);
     PyDict_SetItemString(d, "VBR_OLD", tempobj);
     PyDict_SetItemString(d, "DUAL", tempobj);
     PyDict_SetItemString(d, "PAD_ADJUST", tempobj);
+    PyDict_SetItemString(d, "ASM_3DNOW", tempobj);
     Py_DECREF(tempobj);
     
     tempobj = PyInt_FromLong(3);
     PyDict_SetItemString(d, "VBR_ABR", tempobj);
     PyDict_SetItemString(d, "MONO", tempobj);
+    PyDict_SetItemString(d, "ASM_SSE", tempobj);
     Py_DECREF(tempobj);
     
     tempobj = PyInt_FromLong(4);
     PyDict_SetItemString(d, "VBR_NEW", tempobj);
     PyDict_SetItemString(d, "VBR_DEFAULT", tempobj);
     tempobj = PyInt_FromLong(3);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1000);
+    PyDict_SetItemString(d, "PRESET_R3MIX", tempobj);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1001);
+    PyDict_SetItemString(d, "PRESET_STANDARD", tempobj);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1002);
+    PyDict_SetItemString(d, "PRESET_EXTREME", tempobj);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1003);
+    PyDict_SetItemString(d, "PRESET_INSANE", tempobj);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1004);
+    PyDict_SetItemString(d, "PRESET_STANDARD_FAST", tempobj);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1005);
+    PyDict_SetItemString(d, "PRESET_EXTREME_FAST", tempobj);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1006);
+    PyDict_SetItemString(d, "PRESET_MEDIUM", tempobj);
+    Py_DECREF(tempobj);
+    
+    tempobj = PyInt_FromLong(1007);
+    PyDict_SetItemString(d, "PRESET_MEDIUM_FAST", tempobj);
     Py_DECREF(tempobj);
     
     /* Check for errors */

@@ -190,188 +190,21 @@ def init_gtk(in_filename, out_filename, vbr, bitrate):
     gtk.mainloop()
 
     
-def set_abr_parameters(mp3, bitrate):
-    abr_table = ({'kbps':            80,
-                  'z':                1,
-                  'quantization':     1,
-                  'lowpass':      13500,
-                  'safejoint':        0,
-                  'nsmsfix':          0,
-                  'ns-bass':         -3,
-                  'scale':         0.85},
-                 {'kbps':            96,
-                  'z':                1,
-                  'quantization':     1,
-                  'lowpass':      15300,
-                  'safejoint':        0,
-                  'nsmsfix':          0,
-                  'ns-bass':         -4,
-                  'scale':         0.85},
-                 {'kbps':           112,
-                  'z':                1,
-                  'quantization':     1,
-                  'lowpass':      16000,
-                  'safejoint':        0,
-                  'nsmsfix':          0,
-                  'ns-bass':         -5,
-                  'scale':         0.87},
-                 {'kbps':           128,
-                  'z':                1,
-                  'quantization':     1,
-                  'lowpass':      17500,
-                  'safejoint':        0,
-                  'nsmsfix':          0,
-                  'ns-bass':         -6,
-                  'scale':         0.93},
-                 {'kbps':           160,
-                  'z':                1,
-                  'quantization':     1,
-                  'lowpass':      18000,
-                  'safejoint':        0,
-                  'nsmsfix':          0,
-                  'ns-bass':         -4,
-                  'scale':         0.95},
-                 {'kbps':           192,
-                  'z':                1,
-                  'quantization':     1,
-                  'lowpass':      19500,
-                  'safejoint':        1,
-                  'nsmsfix':        1.7,
-                  'ns-bass':         -2,
-                  'scale':         0.97},
-                 {'kbps':           224,
-                  'z':                1,
-                  'quantization':     1,
-                  'lowpass':      20000,
-                  'safejoint':        1,
-                  'nsmsfix':       1.25,
-                  'ns-bass':         -3,
-                  'scale':         0.98},
-                 {'kbps':           256,
-                  'z':                0,
-                  'quantization':     3,
-                  'lowpass':      20500,
-                  'safejoint':        1,
-                  'nsmsfix':          0,
-                  'ns-bass':         -3,
-                  'scale':         1.00},
-                 {'kbps':           320,
-                  'z':                0,
-                  'quantization':     3,
-                  'lowpass':      21000,
-                  'safejoint':        1,
-                  'nsmsfix':          0,
-                  'ns-bass':          0,
-                  'scale':         1.00}
-                )
-
-    upper_range_kbps = abr_table[8]['kbps']
-    upper_range      = 8
-    lower_range_kbps = abr_table[8]['kbps']
-    lower_range      = 8
-
-    # find matching table entry
-    for iterator in range(1, 9):
-        if max(bitrate, abr_table[iterator]['kbps']) != bitrate:
-            upper_range_kbps = abr_table[iterator]['kbps']
-            upper_range      = iterator
-            lower_range_kbps = abr_table[iterator-1]['kbps']
-            lower_range      = iterator - 1
-            break
-
-    # find nearest entry
-    if (upper_range_kbps - bitrate) > (bitrate - lower_range_kbps):
-        entry = lower_range
-    else:
-        entry = upper_range
-
-    nsbass = abr_table[entry]['ns-bass'] * 4
-    if 0 > nsbass:
-        nsbass += 64
-    
-    mp3.set_abr_bitrate      (bitrate)
-    try:
-	mp3.set_exp_nspsytune(1
-	                      | (abr_table[entry]['safejoint'] << 1)
-                              | (nsbass << 2))
-    except AttributeError:
-	# not available (anymore)
-	pass
-    
-    try:
-	mp3.set_exp_msfix(abr_table[entry]['nsmsfix'])
-    except AttributeError:
-	# not available (anymore)
-	pass
-    try:
-	mp3.set_exp_quantization (abr_table[entry]['quantization'])
-    except AttributeError:
-	# not available (anymore)
-	pass
-    try:
-	mp3.set_exp_z            (abr_table[entry]['z'])
-    except AttributeError:
-	# not available (anymore)
-	pass
-
-    mp3.set_lowpass_frequency(abr_table[entry]['lowpass'])
-    # ABR has problems with clipping at low bitrates, compensate
-    mp3.set_scale            (abr_table[entry]['scale'])
-    mp3.set_ath_type         (2)
-
-    return mp3
-
-        
 def set_parameters(mp3, nchannels, samplerate, nframes, bitrate, vbr):
     mp3.set_num_channels(nchannels)
     mp3.set_in_samplerate(samplerate)
     mp3.set_num_samples(long(nframes))
 
-    if lame.VBR_OFF != vbr:
-        mp3.set_vbr(vbr)
-        if lame.VBR_ABR == vbr:
-            mp3 = set_abr_parameters(mp3, bitrate)
-	else:
-	    try:
-		mp3.set_exp_preset_expopts(3)
-	    except AttributeError:
-		 # not available (anymore)
-		 pass
-	    
-	    mp3.set_lowpass_frequency(19000)
-	    mp3.set_vbr_min_bitrate(128)
-            
-    else:
-	mp3 = set_abr_parameters(mp3, bitrate)
+    mp3.set_vbr(vbr)
+    if 8 <= bitrate <= 320:
 	mp3.set_bitrate(bitrate)
-	#try:
-	#    mp3.set_exp_nspsytune(1 | 2 | (12 << 20))
-	#except AttributeError:
-	#    # not available (anymore)
-	#    pass
-	#try:
-	#    mp3.set_exp_z(1)
-	#except AttributeError:
-	#    # not available (anymore)
-	#    pass
-	#try:
-	#    mp3.set_exp_quantization(1)
-	#except AttributeError:
-	#    # not available (anymore)
-	#    pass
-        #mp3.set_lowpass_frequency(19500)
-        #mp3.set_ath_type(4)
-        
-    mp3.set_quality(2)
-    mp3.set_mode(lame.JOINT_STEREO)
-    mp3.set_substep(1)
-
+    mp3.set_preset(bitrate)
     return mp3
 
 
 def get_defaults():
     # defaults:
-    bitrate = 128
+    bitrate = lame.PRESET_STANDARD
     verbose = 0
     quiet   = 0
     vbr     = lame.VBR_DEFAULT
@@ -402,6 +235,8 @@ def process_options_or_exit(arglist):
 	    continue
 	if opt == '-g':
 	    use_gui = 1
+	    print "GUI is disabled for now..."
+	    sys.exit(1)
 	    continue
 	if opt == '-h':
 	    usage()
@@ -495,14 +330,17 @@ def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate, use_gui):
 	    print ''
 	
 	if lame.VBR_DEFAULT == vbr:
-	    print '%9d of %9d bytes (%.1f kbps)' %     (
-	          processed_bytes, raw_size, average_rate )
+	    print '\r%9d of %9d bytes (%.1f kbps)' %      (
+	          processed_bytes, raw_size, average_rate ),
 	else:
 	    # ABR & CBR
-	    print '%9d of %9d bytes' %     (
-	          processed_bytes, raw_size )
+	    print '\r%9d of %9d bytes' %    (
+	          processed_bytes, raw_size ),
 	
+	sys.stdout.flush()
+		  
 	if 1 == verbose:
+	    print ''
 	    for i in range(0, 14):
 		print '%3d: %4d (%5.1f%%)  LR: %4d LR-I: %4d MS: %4d MS-I: %4d' % (
 		      bitrate_hist[i]["bitrate"], bitrate_hist[i]["value"],
