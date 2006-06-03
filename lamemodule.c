@@ -54,7 +54,7 @@ typedef struct {
     /* XXXX Add your own stuff here */
     PyObject*           mp3enc_attr;    /* Attributes dictionary */
     lame_global_flags*  gfp;
-    char*               mp3_buf;
+    unsigned char*      mp3_buf;
     int                 num_samples;
     int                 num_channels;
 } mp3encobject;
@@ -95,12 +95,11 @@ mp3enc_encode_interleaved(self, args)
     int      num_samples;
     int      mp3_data_size;
 
-    if ( NULL == PyArg_ParseTuple( args, "s#", &pcm, &num_samples ) ) {
+    if ( !PyArg_ParseTuple( args, "s#", &pcm, &num_samples ) )
         return NULL;
-    }
 
     if ( self->num_samples < num_samples ) {
-	char *new_buf;
+	unsigned char *new_buf;
 	
 	new_buf = realloc( self->mp3_buf, 1.25*num_samples + 7200 );
 	if ( NULL == new_buf ) {
@@ -250,7 +249,7 @@ mp3enc_init_parameters(self, args)
     mp3encobject *self;
     PyObject *args;
 {
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
 
     if ( NULL == self->mp3_buf ) {
@@ -282,7 +281,7 @@ mp3enc_set_num_samples(self, args)
 {
     unsigned long num_samples;
 
-    if ( NULL == PyArg_ParseTuple( args, "l", &num_samples ) )
+    if ( !PyArg_ParseTuple( args, "l", &num_samples ) )
         return NULL;
 
     if ( 0 > lame_set_num_samples( self->gfp, num_samples ) ) {
@@ -309,7 +308,7 @@ mp3enc_set_in_samplerate(self, args)
 {
     int in_samplerate;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &in_samplerate ) )
+    if ( !PyArg_ParseTuple( args, "i", &in_samplerate ) )
         return NULL;
     
     if ( 0 > lame_set_in_samplerate( self->gfp, in_samplerate ) ) {
@@ -336,7 +335,7 @@ mp3enc_set_num_channels(self, args)
 {
     int num_channels;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &num_channels ) )
+    if ( !PyArg_ParseTuple( args, "i", &num_channels ) )
         return NULL;
     
     if ( 0 > lame_set_num_channels( self->gfp, num_channels ) ) {
@@ -366,7 +365,7 @@ mp3enc_set_scale(self, args)
 {
     float scale;
     
-    if ( NULL == PyArg_ParseTuple( args, "f", &scale ) )
+    if ( !PyArg_ParseTuple( args, "f", &scale ) )
         return NULL;
     
     if ( 0 > lame_set_scale( self->gfp, scale ) ) {
@@ -393,7 +392,7 @@ mp3enc_set_scale_left(self, args)
 {
     float scale_left;
     
-    if ( NULL == PyArg_ParseTuple( args, "f", &scale_left ) )
+    if ( !PyArg_ParseTuple( args, "f", &scale_left ) )
         return NULL;
     
     if ( 0 > lame_set_scale_left( self->gfp, scale_left ) ) {
@@ -420,7 +419,7 @@ mp3enc_set_scale_right(self, args)
 {
     float scale_right;
     
-    if ( NULL == PyArg_ParseTuple( args, "f", &scale_right ) )
+    if ( !PyArg_ParseTuple( args, "f", &scale_right ) )
         return NULL;
     
     if ( 0 > lame_set_scale_right( self->gfp, scale_right ) ) {
@@ -447,7 +446,7 @@ mp3enc_set_out_samplerate(self, args)
 {
     int out_samplerate;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &out_samplerate ) )
+    if ( !PyArg_ParseTuple( args, "i", &out_samplerate ) )
         return NULL;
     
     if ( 0 > lame_set_out_samplerate( self->gfp, out_samplerate ) ) {
@@ -474,7 +473,7 @@ mp3enc_set_analysis(self, args)
 {
     int analysis;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &analysis ) )
+    if ( !PyArg_ParseTuple( args, "i", &analysis ) )
         return NULL;
     
     if ( 0 > lame_set_analysis( self->gfp, analysis ) ) {
@@ -501,7 +500,7 @@ mp3enc_set_write_vbr_tag(self, args)
 {
     int write_vbr_tag;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &write_vbr_tag ) )
+    if ( !PyArg_ParseTuple( args, "i", &write_vbr_tag ) )
         return NULL;
     
     if ( 0 > lame_set_bWriteVbrTag( self->gfp, write_vbr_tag ) ) {
@@ -529,7 +528,7 @@ mp3enc_set_decode_only(self, args)
 {
     int decode_only;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &decode_only ) )
+    if ( !PyArg_ParseTuple( args, "i", &decode_only ) )
         return NULL;
     
     if ( 0 > lame_set_decode_only( self->gfp, decode_only ) ) {
@@ -557,7 +556,7 @@ mp3enc_set_quality(self, args)
 {
     int quality;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &quality ) )
+    if ( !PyArg_ParseTuple( args, "i", &quality ) )
         return NULL;
     
     if ( 0 > lame_set_quality( self->gfp, quality ) ) {
@@ -584,7 +583,7 @@ mp3enc_set_mode(self, args)
 {
     int mode;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &mode ) )
+    if ( !PyArg_ParseTuple( args, "i", &mode ) )
         return NULL;
     
     if ( 0 > lame_set_mode( self->gfp, mode ) ) {
@@ -611,7 +610,7 @@ mp3enc_set_mode_automs(self, args)
 {
     int mode_automs;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &mode_automs ) )
+    if ( !PyArg_ParseTuple( args, "i", &mode_automs ) )
         return NULL;
     
     if ( 0 > lame_set_mode_automs( self->gfp, mode_automs ) ) {
@@ -638,7 +637,7 @@ mp3enc_set_force_ms(self, args)
 {
     int force_ms;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &force_ms ) )
+    if ( !PyArg_ParseTuple( args, "i", &force_ms ) )
         return NULL;
     
     if ( 0 > lame_set_force_ms( self->gfp, force_ms ) ) {
@@ -665,7 +664,7 @@ mp3enc_set_free_format(self, args)
 {
     int free_format;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &free_format ) )
+    if ( !PyArg_ParseTuple( args, "i", &free_format ) )
         return NULL;
     
     if ( 0 > lame_set_free_format( self->gfp, free_format ) ) {
@@ -692,7 +691,7 @@ mp3enc_set_bitrate(self, args)
 {
     int brate;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &brate ) )
+    if ( !PyArg_ParseTuple( args, "i", &brate ) )
         return NULL;
     
     if ( 0 > lame_set_brate( self->gfp, brate ) ) {
@@ -719,7 +718,7 @@ mp3enc_set_compression_ratio(self, args)
 {
     float compression_ratio;
     
-    if ( NULL == PyArg_ParseTuple( args, "f", &compression_ratio ) )
+    if ( !PyArg_ParseTuple( args, "f", &compression_ratio ) )
         return NULL;
     
     if ( 0 > lame_set_compression_ratio( self->gfp, compression_ratio ) ) {
@@ -748,7 +747,7 @@ mp3enc_set_preset(self, args)
 {
     int preset;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &preset ) )
+    if ( !PyArg_ParseTuple( args, "i", &preset ) )
         return NULL;
     
     if ( 0 > lame_set_preset( self->gfp, preset ) ) {
@@ -775,7 +774,7 @@ mp3enc_set_asm_optimizations(self, args)
 {
     int val1, val2;
     
-    if ( NULL == PyArg_ParseTuple( args, "ii", &val1, &val2 ) )
+    if ( !PyArg_ParseTuple( args, "ii", &val1, &val2 ) )
         return NULL;
     
     if ( 0 > lame_set_asm_optimizations( self->gfp, val1, val2 ) ) {
@@ -802,7 +801,7 @@ mp3enc_set_copyright(self, args)
 {
     int copyright;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &copyright ) )
+    if ( !PyArg_ParseTuple( args, "i", &copyright ) )
         return NULL;
     
     if ( 0 > lame_set_copyright( self->gfp, copyright ) ) {
@@ -829,7 +828,7 @@ mp3enc_set_original(self, args)
 {
     int original;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &original ) )
+    if ( !PyArg_ParseTuple( args, "i", &original ) )
         return NULL;
     
     if ( 0 > lame_set_original( self->gfp, original ) ) {
@@ -856,7 +855,7 @@ mp3enc_set_error_protection(self, args)
 {
     int error_protection;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &error_protection ) )
+    if ( !PyArg_ParseTuple( args, "i", &error_protection ) )
         return NULL;
     
     if ( 0 > lame_set_error_protection( self->gfp, error_protection ) ) {
@@ -883,7 +882,7 @@ mp3enc_set_padding_type(self, args)
 {
     int padding_type;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &padding_type ) )
+    if ( !PyArg_ParseTuple( args, "i", &padding_type ) )
         return NULL;
     
     if ( 0 > lame_set_padding_type( self->gfp, padding_type ) ) {
@@ -910,7 +909,7 @@ mp3enc_set_extension(self, args)
 {
     int extension;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &extension ) )
+    if ( !PyArg_ParseTuple( args, "i", &extension ) )
         return NULL;
     
     if ( 0 > lame_set_extension( self->gfp, extension ) ) {
@@ -937,7 +936,7 @@ mp3enc_set_strict_iso(self, args)
 {
     int strict_iso;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &strict_iso ) )
+    if ( !PyArg_ParseTuple( args, "i", &strict_iso ) )
         return NULL;
     
     if ( 0 > lame_set_strict_ISO( self->gfp, strict_iso ) ) {
@@ -964,7 +963,7 @@ mp3enc_set_disable_reservoir(self, args)
 {
     int disable_reservoir;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &disable_reservoir ) )
+    if ( !PyArg_ParseTuple( args, "i", &disable_reservoir ) )
         return NULL;
     
     if ( 0 > lame_set_disable_reservoir( self->gfp, disable_reservoir ) ) {
@@ -991,7 +990,7 @@ mp3enc_set_exp_quantization(self, args)
 {
     int quantization;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &quantization ) )
+    if ( !PyArg_ParseTuple( args, "i", &quantization ) )
         return NULL;
     
     if ( 0 > lame_set_experimentalX( self->gfp, quantization ) ) {
@@ -1018,7 +1017,7 @@ mp3enc_set_exp_y(self, args)
 {
     int y;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &y ) )
+    if ( !PyArg_ParseTuple( args, "i", &y ) )
         return NULL;
     
     if ( 0 > lame_set_experimentalY( self->gfp, y ) ) {
@@ -1045,7 +1044,7 @@ mp3enc_set_exp_z(self, args)
 {
     int z;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &z ) )
+    if ( !PyArg_ParseTuple( args, "i", &z ) )
         return NULL;
     
     if ( 0 > lame_set_experimentalZ( self->gfp, z ) ) {
@@ -1072,7 +1071,7 @@ mp3enc_set_exp_nspsytune(self, args)
 {
     int nspsytune;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &nspsytune ) )
+    if ( !PyArg_ParseTuple( args, "i", &nspsytune ) )
         return NULL;
     
     if ( 0 > lame_set_exp_nspsytune( self->gfp, nspsytune ) ) {
@@ -1100,7 +1099,7 @@ mp3enc_set_vbr(self, args)
 {
     int vbr;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &vbr ) )
+    if ( !PyArg_ParseTuple( args, "i", &vbr ) )
         return NULL;
     
     if ( 0 > lame_set_VBR( self->gfp, vbr ) ) {
@@ -1127,7 +1126,7 @@ mp3enc_set_vbr_quality(self, args)
 {
     int vbr_quality;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &vbr_quality ) )
+    if ( !PyArg_ParseTuple( args, "i", &vbr_quality ) )
         return NULL;
     
     if ( 0 > lame_set_VBR_q( self->gfp, vbr_quality ) ) {
@@ -1154,7 +1153,7 @@ mp3enc_set_abr_bitrate(self, args)
 {
     int abr_bitrate;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &abr_bitrate ) )
+    if ( !PyArg_ParseTuple( args, "i", &abr_bitrate ) )
         return NULL;
     
     if ( 0 > lame_set_VBR_mean_bitrate_kbps( self->gfp, abr_bitrate ) ) {
@@ -1181,7 +1180,7 @@ mp3enc_set_vbr_min_bitrate(self, args)
 {
     int vbr_min_bitrate;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &vbr_min_bitrate ) )
+    if ( !PyArg_ParseTuple( args, "i", &vbr_min_bitrate ) )
         return NULL;
     
     if ( 0 > lame_set_VBR_min_bitrate_kbps( self->gfp, vbr_min_bitrate ) ) {
@@ -1208,7 +1207,7 @@ mp3enc_set_vbr_max_bitrate(self, args)
 {
     int vbr_max_bitrate;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &vbr_max_bitrate ) )
+    if ( !PyArg_ParseTuple( args, "i", &vbr_max_bitrate ) )
         return NULL;
     
     if ( 0 > lame_set_VBR_max_bitrate_kbps( self->gfp, vbr_max_bitrate ) ) {
@@ -1236,7 +1235,7 @@ mp3enc_set_vbr_min_enforce(self, args)
 {
     int vbr_min_enforce;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &vbr_min_enforce ) )
+    if ( !PyArg_ParseTuple( args, "i", &vbr_min_enforce ) )
         return NULL;
     
     if ( 0 > lame_set_VBR_hard_min( self->gfp, vbr_min_enforce ) ) {
@@ -1263,7 +1262,7 @@ mp3enc_set_lowpass_frequency(self, args)
 {
     int lowpass_frequency;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &lowpass_frequency ) )
+    if ( !PyArg_ParseTuple( args, "i", &lowpass_frequency ) )
         return NULL;
     
     if ( 0 > lame_set_lowpassfreq( self->gfp, lowpass_frequency ) ) {
@@ -1290,7 +1289,7 @@ mp3enc_set_lowpass_width(self, args)
 {
     int lowpass_width;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &lowpass_width ) )
+    if ( !PyArg_ParseTuple( args, "i", &lowpass_width ) )
         return NULL;
     
     if ( 0 > lame_set_lowpasswidth( self->gfp, lowpass_width ) ) {
@@ -1317,7 +1316,7 @@ mp3enc_set_highpass_frequency(self, args)
 {
     int highpass_frequency;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &highpass_frequency ) )
+    if ( !PyArg_ParseTuple( args, "i", &highpass_frequency ) )
         return NULL;
     
     if ( 0 > lame_set_highpassfreq( self->gfp, highpass_frequency ) ) {
@@ -1344,7 +1343,7 @@ mp3enc_set_highpass_width(self, args)
 {
     int highpass_width;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &highpass_width ) )
+    if ( !PyArg_ParseTuple( args, "i", &highpass_width ) )
         return NULL;
     
     if ( 0 > lame_set_highpasswidth( self->gfp, highpass_width ) ) {
@@ -1371,7 +1370,7 @@ mp3enc_set_ath_for_masking_only(self, args)
 {
     int ath_for_masking_only;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &ath_for_masking_only) )
+    if ( !PyArg_ParseTuple( args, "i", &ath_for_masking_only) )
         return NULL;
     
     if ( 0 > lame_set_ATHonly( self->gfp, ath_for_masking_only ) ) {
@@ -1398,7 +1397,7 @@ mp3enc_set_ath_for_short_only(self, args)
 {
     int ath_for_short_only;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &ath_for_short_only ) )
+    if ( !PyArg_ParseTuple( args, "i", &ath_for_short_only ) )
         return NULL;
     
     if ( 0 > lame_set_ATHshort( self->gfp, ath_for_short_only ) ) {
@@ -1425,7 +1424,7 @@ mp3enc_set_ath_disable(self, args)
 {
     int ath_disable;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &ath_disable ) )
+    if ( !PyArg_ParseTuple( args, "i", &ath_disable ) )
         return NULL;
     
     if ( 0 > lame_set_noATH( self->gfp, ath_disable ) ) {
@@ -1452,7 +1451,7 @@ mp3enc_set_ath_type(self, args)
 {
     int ath_type;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &ath_type ) )
+    if ( !PyArg_ParseTuple( args, "i", &ath_type ) )
         return NULL;
     
     if ( 0 > lame_set_ATHtype( self->gfp, ath_type ) ) {
@@ -1479,7 +1478,7 @@ mp3enc_set_ath_lower(self, args)
 {
     int ath_lower;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &ath_lower ) )
+    if ( !PyArg_ParseTuple( args, "i", &ath_lower ) )
         return NULL;
     
     if ( 0 > lame_set_ATHlower( self->gfp, ath_lower ) ) {
@@ -1506,7 +1505,7 @@ mp3enc_set_athaa_type(self, args)
 {
     int athaa_type;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &athaa_type ) )
+    if ( !PyArg_ParseTuple( args, "i", &athaa_type ) )
         return NULL;
     
     if ( 0 > lame_set_athaa_type( self->gfp, athaa_type ) ) {
@@ -1533,7 +1532,7 @@ mp3enc_set_athaa_loudness_approximation(self, args)
 {
     int athaa_loudness_approximation;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &athaa_loudness_approximation ) )
+    if ( !PyArg_ParseTuple( args, "i", &athaa_loudness_approximation ) )
         return NULL;
     
     if ( 0 > lame_set_athaa_loudapprox( self->gfp, athaa_loudness_approximation ) ) {
@@ -1560,7 +1559,7 @@ mp3enc_set_athaa_sensitivity(self, args)
 {
     int athaa_sensitivity;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &athaa_sensitivity ) )
+    if ( !PyArg_ParseTuple( args, "i", &athaa_sensitivity ) )
         return NULL;
     
     if ( 0 > lame_set_athaa_sensitivity( self->gfp, athaa_sensitivity ) ) {
@@ -1587,7 +1586,7 @@ mp3enc_set_predictability_limit(self, args)
 {
     int predictability_limit;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &predictability_limit ) )
+    if ( !PyArg_ParseTuple( args, "i", &predictability_limit ) )
         return NULL;
     
     if ( 0 > lame_set_cwlimit( self->gfp, predictability_limit ) ) {
@@ -1614,7 +1613,7 @@ mp3enc_set_allow_blocktype_difference(self, args)
 {
     int allow_blocktype_difference;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &allow_blocktype_difference ) )
+    if ( !PyArg_ParseTuple( args, "i", &allow_blocktype_difference ) )
         return NULL;
     
     if ( 0 > lame_set_allow_diff_short( self->gfp, allow_blocktype_difference ) ) {
@@ -1641,7 +1640,7 @@ mp3enc_set_use_temporal_masking(self, args)
 {
     int use_temporal_masking;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &use_temporal_masking ) )
+    if ( !PyArg_ParseTuple( args, "i", &use_temporal_masking ) )
         return NULL;
     
     if ( 0 > lame_set_useTemporal( self->gfp, use_temporal_masking ) ) {
@@ -1668,7 +1667,7 @@ mp3enc_set_inter_channel_ratio(self, args)
 {
     float inter_channel_ratio;
     
-    if ( NULL == PyArg_ParseTuple( args, "f", &inter_channel_ratio ) )
+    if ( !PyArg_ParseTuple( args, "f", &inter_channel_ratio ) )
         return NULL;
     
     if ( 0 > lame_set_interChRatio( self->gfp, inter_channel_ratio ) ) {
@@ -1695,7 +1694,7 @@ mp3enc_set_substep(self, args)
 {
     int substep;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &substep ) )
+    if ( !PyArg_ParseTuple( args, "i", &substep ) )
         return NULL;
     
     if ( 0 > lame_set_substep( self->gfp, substep ) ) {
@@ -1722,7 +1721,7 @@ mp3enc_set_no_short_blocks(self, args)
 {
     int no_short_blocks;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &no_short_blocks ) )
+    if ( !PyArg_ParseTuple( args, "i", &no_short_blocks ) )
         return NULL;
     
     if ( 0 > lame_set_no_short_blocks( self->gfp, no_short_blocks ) ) {
@@ -1749,7 +1748,7 @@ mp3enc_set_force_short_blocks(self, args)
 {
     int force_short_blocks;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &force_short_blocks ) )
+    if ( !PyArg_ParseTuple( args, "i", &force_short_blocks ) )
         return NULL;
     
     if ( 0 > lame_set_force_short_blocks( self->gfp, force_short_blocks ) ) {
@@ -1774,7 +1773,7 @@ mp3enc_get_frame_num(self, args)
 {
     int frame_num;
     
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
     
     frame_num = lame_get_frameNum( self->gfp );
@@ -1796,7 +1795,7 @@ mp3enc_get_total_frames(self, args)
 {
     int total_frames;
     
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
     
     total_frames = lame_get_totalframes( self->gfp );
@@ -1818,7 +1817,7 @@ mp3enc_get_bitrate_histogram(self, args)
     int bitrate_count[14];
     int bitrate_value[14];
     
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
     
     lame_bitrate_kbps( self->gfp, bitrate_value );
@@ -1868,7 +1867,7 @@ mp3enc_get_bitrate_values(self, args)
 {
     int bitrate_count[14];
     
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
     
     lame_bitrate_kbps( self->gfp, bitrate_count );
@@ -1903,7 +1902,7 @@ mp3enc_get_bitrate_stereo_mode_histogram(self, args)
 {
     int bitrate_stmode_count[14][4];
     
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
     
     lame_bitrate_stereo_mode_hist( self->gfp, bitrate_stmode_count );
@@ -1980,7 +1979,7 @@ mp3enc_get_stereo_mode_histogram(self, args)
 {
     int stmode_count[4];
     
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
     
     lame_stereo_mode_hist( self->gfp, stmode_count );
@@ -2008,7 +2007,7 @@ mp3enc_set_exp_msfix(self, args)
 {
     double msfix;
     
-    if ( NULL == PyArg_ParseTuple( args, "d", &msfix ) )
+    if ( !PyArg_ParseTuple( args, "d", &msfix ) )
         return NULL;
 
     lame_set_msfix( self->gfp, msfix );
@@ -2033,7 +2032,7 @@ mp3enc_set_exp_preset_expopts(self, args)
 {
     double preset_expopts;
     
-    if ( NULL == PyArg_ParseTuple( args, "i", &preset_expopts ) )
+    if ( !PyArg_ParseTuple( args, "i", &preset_expopts ) )
         return NULL;
 
     lame_set_preset_expopts( self->gfp, preset_expopts );
@@ -2057,7 +2056,7 @@ mp3enc_write_tags(self, args)
     PyObject *object;
     FILE *mp3_file;
     
-    if ( NULL == PyArg_ParseTuple( args, "O", &object ) )
+    if ( !PyArg_ParseTuple( args, "O", &object ) )
         return NULL;
 
     if ( 0 == PyFile_Check( object ) )
@@ -2354,7 +2353,7 @@ mp3lame_init(self, args)
     const char*  mp3_filename;
     FILE*  mp3_file;
 
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
 
     rv = newmp3encobject();
@@ -2374,7 +2373,7 @@ mp3lame_url(self, args)
     mp3encobject *self; /* Not used */
     PyObject *args;
 {
-    if ( NULL == PyArg_ParseTuple(args, "") )
+    if ( !PyArg_ParseTuple(args, "") )
         return NULL;
 
     return Py_BuildValue("s", get_lame_url());
@@ -2393,7 +2392,7 @@ mp3lame_version(self, args)
 {
     lame_version_t version;
 
-    if ( NULL == PyArg_ParseTuple( args, "" ) )
+    if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
 
     get_lame_version_numerical( &version );
