@@ -150,11 +150,11 @@ def init_gtk(in_filename, out_filename, vbr, bitrate):
     label8.set_justify(GTK.JUSTIFY_RIGHT)
     table2.attach(label8, 0, 1, 0, 1, GTK.FILL)
     
-    if lame.VBR_DEFAULT == vbr:
+    if lame.VBR_MODE_DEFAULT == vbr:
 	mp3_type = 'VBR'
-    elif lame.VBR_ABR == vbr:
+    elif lame.VBR_MODE_ABR == vbr:
 	mp3_type = 'ABR'
-    elif lame.VBR_OFF == vbr:
+    elif lame.VBR_MODE_OFF == vbr:
 	mp3_type = 'CBR'
     else:
 	mp3_type = 'Unknown'
@@ -225,13 +225,13 @@ def process_options_or_exit(arglist):
     # process options
     for opt, val in optlist:
         if opt == '-a':
-            vbr     = lame.VBR_ABR
+            vbr     = lame.VBR_MODE_ABR
 	    continue
 	if opt == '-b':
 	    bitrate = int(val)
 	    continue
 	if opt == '-c':
-	    vbr     = lame.VBR_OFF
+	    vbr     = lame.VBR_MODE_OFF
 	    continue
 	if opt == '-g':
 	    use_gui = 1
@@ -310,7 +310,7 @@ def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate, use_gui):
     frames_total     = mp3.get_total_frames()
     stmode_total     = mp3.get_stereo_mode_histogram()
 
-    if lame.VBR_DEFAULT == vbr:
+    if lame.VBR_MODE_DEFAULT == vbr:
 	average_rate = get_average(bitrate_hist, frames_processed)
     else:
 	average_rate = bitrate
@@ -329,7 +329,7 @@ def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate, use_gui):
 	if 1 == verbose:
 	    print ''
 	
-	if lame.VBR_DEFAULT == vbr:
+	if lame.VBR_MODE_DEFAULT == vbr:
 	    print '\r%9d of %9d bytes (%04.1f%%, %.1f kbps)' %      (
 	          processed_bytes, raw_size,
 		  float(processed_bytes)/raw_size*100,
@@ -385,8 +385,8 @@ def main():
         print "raw size  :", raw_size
 
         print os.linesep + "Lame:"
-        print "URL      :", lame.url()
-        print "Version  :", lame.version()
+        print "URL      :", lame.LAME_URL
+        print "Version  :", lame.LAME_VERSION
 
     if 2 != sampwidth:
         print 'Sorry, no support for != 16bit samples.'

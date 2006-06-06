@@ -2439,13 +2439,52 @@ initlame()
     m = Py_InitModule3("lame", mp3lame_methods, lame_module_documentation);
 
     /* Add some symbolic constants to the module */
+    /* String version constants for convenience. */
+    PyModule_AddStringConstant(m, "LAME_VERSION",
+                               (char *)get_lame_version());
+    PyModule_AddStringConstant(m, "LAME_VERSION_SHORT",
+                               (char *)get_lame_short_version());
+    PyModule_AddStringConstant(m, "LAME_VERSION_VERY_SHORT",
+                               (char *)get_lame_very_short_version());
+    PyModule_AddStringConstant(m, "LAME_URL",
+                               (char *)get_lame_url());
+
+    /* Expose presets */
+    PyModule_AddIntConstant(m, "PRESET_ABR_8", ABR_8);
+    PyModule_AddIntConstant(m, "PRESET_ABR_320", ABR_320);
+    PyModule_AddIntConstant(m, "PRESET_VBR_9", V9);
+    PyModule_AddIntConstant(m, "PRESET_VBR_8", V8);
+    PyModule_AddIntConstant(m, "PRESET_VBR_7", V7);
+    PyModule_AddIntConstant(m, "PRESET_VBR_6", V6);
+    PyModule_AddIntConstant(m, "PRESET_VBR_5", V5);
+    PyModule_AddIntConstant(m, "PRESET_VBR_4", V4);
+    PyModule_AddIntConstant(m, "PRESET_VBR_3", V3);
+    PyModule_AddIntConstant(m, "PRESET_VBR_2", V2);
+    PyModule_AddIntConstant(m, "PRESET_VBR_1", V1);
+    PyModule_AddIntConstant(m, "PRESET_VBR_0", V0);
+    /* Older ones for compatibility */
+    PyModule_AddIntConstant(m, "PRESET_R3MIX", R3MIX);
+    PyModule_AddIntConstant(m, "PRESET_STANDARD", STANDARD);
+    PyModule_AddIntConstant(m, "PRESET_EXTREME", EXTREME);
+    PyModule_AddIntConstant(m, "PRESET_INSANE", INSANE);
+    PyModule_AddIntConstant(m, "PRESET_STANDARD_FAST", STANDARD_FAST);
+    PyModule_AddIntConstant(m, "PRESET_EXTREME_FAST", EXTREME_FAST);
+    PyModule_AddIntConstant(m, "PRESET_MEDIUM", MEDIUM);
+    PyModule_AddIntConstant(m, "PRESET_MEDIUM_FAST", MEDIUM_FAST);
+    
+    /* Expose VBR encoding modes. */
+    PyModule_AddIntConstant(m, "VBR_MODE_OFF", vbr_off);
+    PyModule_AddIntConstant(m, "VBR_MODE_RH", vbr_rh);
+    PyModule_AddIntConstant(m, "VBR_MODE_ABR", vbr_abr);
+    PyModule_AddIntConstant(m, "VBR_MODE_MTRH", vbr_mtrh);
+    PyModule_AddIntConstant(m, "VBR_MODE_DEFAULT", vbr_default);
+
     d = PyModule_GetDict(m);
     ErrorObject = PyString_FromString("lame.error");
     PyDict_SetItemString(d, "error", ErrorObject);
 
     /* Own constants */
     tempobj = PyInt_FromLong(0);
-    PyDict_SetItemString(d, "VBR_OFF", tempobj);
     PyDict_SetItemString(d, "STEREO", tempobj);
     PyDict_SetItemString(d, "PAD_NO", tempobj);
     Py_DECREF(tempobj);
@@ -2457,56 +2496,16 @@ initlame()
     Py_DECREF(tempobj);
     
     tempobj = PyInt_FromLong(2);
-    PyDict_SetItemString(d, "VBR_OLD", tempobj);
     PyDict_SetItemString(d, "DUAL", tempobj);
     PyDict_SetItemString(d, "PAD_ADJUST", tempobj);
     PyDict_SetItemString(d, "ASM_3DNOW", tempobj);
     Py_DECREF(tempobj);
     
     tempobj = PyInt_FromLong(3);
-    PyDict_SetItemString(d, "VBR_ABR", tempobj);
     PyDict_SetItemString(d, "MONO", tempobj);
     PyDict_SetItemString(d, "ASM_SSE", tempobj);
     Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(4);
-    PyDict_SetItemString(d, "VBR_NEW", tempobj);
-    PyDict_SetItemString(d, "VBR_DEFAULT", tempobj);
-    tempobj = PyInt_FromLong(3);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1000);
-    PyDict_SetItemString(d, "PRESET_R3MIX", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1001);
-    PyDict_SetItemString(d, "PRESET_STANDARD", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1002);
-    PyDict_SetItemString(d, "PRESET_EXTREME", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1003);
-    PyDict_SetItemString(d, "PRESET_INSANE", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1004);
-    PyDict_SetItemString(d, "PRESET_STANDARD_FAST", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1005);
-    PyDict_SetItemString(d, "PRESET_EXTREME_FAST", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1006);
-    PyDict_SetItemString(d, "PRESET_MEDIUM", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1007);
-    PyDict_SetItemString(d, "PRESET_MEDIUM_FAST", tempobj);
-    Py_DECREF(tempobj);
-    
+
     /* Check for errors */
     if (PyErr_Occurred())
         Py_FatalError("can't initialize module lame");
