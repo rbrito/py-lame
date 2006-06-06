@@ -56,7 +56,6 @@ typedef struct {
     lame_global_flags*  gfp;
     unsigned char*      mp3_buf;
     int                 num_samples;
-    int                 num_channels;
 } mp3encobject;
 
 staticforward PyTypeObject Mp3enctype;
@@ -94,10 +93,13 @@ mp3enc_encode_interleaved(self, args)
     int16_t* pcm;
     int      num_samples;
     int      mp3_data_size;
+    int      num_channels;
 
     if ( !PyArg_ParseTuple( args, "s#", &pcm, &num_samples ) )
         return NULL;
 
+    num_channels = lame_get_num_channels(self->gfp);
+    
     if ( self->num_samples < num_samples ) {
 	unsigned char *new_buf;
 	
@@ -114,7 +116,7 @@ mp3enc_encode_interleaved(self, args)
     mp3_data_size = lame_encode_buffer_interleaved(
                         self->gfp,
                         pcm,
-                        num_samples / (self->num_channels * 2), /* 16bit! */
+                        num_samples / (num_channels * 2), /* 16bit! */
                         self->mp3_buf,
                         self->num_samples );
 
@@ -316,36 +318,6 @@ mp3enc_set_in_samplerate(self, args)
         return NULL;
     }
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_num_channels__doc__[] =
-"Set number of channels of infile.\n"
-"Default: 2\n"
-"Parameter: int\n"
-"C function: lame_set_num_channels()\n"
-;
-
-static PyObject *
-mp3enc_set_num_channels(self, args)
-    mp3encobject *self;
-    PyObject *args;
-{
-    int num_channels;
-    
-    if ( !PyArg_ParseTuple( args, "i", &num_channels ) )
-        return NULL;
-    
-    if ( 0 > lame_set_num_channels( self->gfp, num_channels ) ) {
-        PyErr_SetString( (PyObject *)self,
-			 "can't set number of channels of infile" );
-        return NULL;
-    }
-
-    self->num_channels = num_channels;
-    
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -2086,8 +2058,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_num_samples__doc__                  },
     {"set_in_samplerate", (PyCFunction)mp3enc_set_in_samplerate,
 	METH_VARARGS, mp3enc_set_in_samplerate__doc__                },
-    {"set_num_channels", (PyCFunction)mp3enc_set_num_channels,
-	METH_VARARGS, mp3enc_set_num_channels__doc__                 },
     {"set_scale", (PyCFunction)mp3enc_set_scale,
 	METH_VARARGS, mp3enc_set_scale__doc__                        },
     {"set_scale_left", (PyCFunction)mp3enc_set_scale_left,
@@ -2251,7 +2221,6 @@ newmp3encobject( void )
 
     /* later */
     self->num_samples        = 2;
-    self->num_channels       = 2; /* default */
     self->mp3_buf            = NULL;
 
     /* we don't want output from the lib */
@@ -2307,33 +2276,84 @@ mp3enc_getattr(self, name)
 }
 
 
-static char Mp3enctype__doc__[] = 
-""
-;
+static PyObject *
+mp3enc_get_num_channels(mp3encobject *self, void *closure)
+{
+    return Py_BuildValue("i", lame_get_num_channels(self->gfp));
+}
+
+
+static int
+mp3enc_set_num_channels(mp3encobject *self, PyObject *value, void *closure)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete the num_channels attribute");
+        return -1;
+    }
+
+    if (!PyInt_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "num_channels must be an integer");
+        return -1;
+    }
+
+    if (0 != lame_set_num_channels(self->gfp, PyInt_AS_LONG(value))) {
+        PyErr_SetString(PyExc_ValueError, "num_channels must be 1 or 2.");
+        return -1;
+    }
+
+    return 0;
+}
+
+
+static PyGetSetDef mp3enc_getseters[] = {
+    {"num_channels",
+        (getter)mp3enc_get_num_channels, (setter)mp3enc_set_num_channels,
+        "Number of channels.", NULL},
+    {NULL} /* Sentinel */
+};
+
 
 static PyTypeObject Mp3enctype = {
         PyObject_HEAD_INIT(NULL)
-       0,                              /*ob_size*/
-        "lame_encode",                  /*tp_name*/
-        sizeof(mp3encobject),           /*tp_basicsize*/
-        0,                              /*tp_itemsize*/
+        0,                              /* ob_size */
+        "lame.encoder",                 /* tp_name */
+        sizeof(mp3encobject),           /* tp_basicsize */
+        0,                              /* tp_itemsize */
         /* methods */
-        (destructor)mp3enc_dealloc,     /*tp_dealloc*/
-        (printfunc)0,                   /*tp_print*/
-        (getattrfunc)mp3enc_getattr,    /*tp_getattr*/
-        (setattrfunc)0,                 /*tp_setattr*/
-        (cmpfunc)0,                     /*tp_compare*/
-        (reprfunc)0,                    /*tp_repr*/
-        0,                              /*tp_as_number*/
-        0,                              /*tp_as_sequence*/
-        0,                              /*tp_as_mapping*/
-        (hashfunc)0,                    /*tp_hashg*/
-        (ternaryfunc)0,                 /*tp_call*/
-        (reprfunc)0,                    /*tp_str*/
-
-        /* Space for future expansion */
-        0L,0L,0L,0L,
-        Mp3enctype__doc__ /* Documentation string */
+        (destructor)mp3enc_dealloc,     /* tp_dealloc */
+        0,                              /* tp_print */
+        (getattrfunc)mp3enc_getattr,    /* tp_getattr */
+        0,                              /* tp_setattr */
+        0,                              /* tp_compare */
+        0,                              /* tp_repr */
+        0,                              /* tp_as_number */
+        0,                              /* tp_as_sequence */
+        0,                              /* tp_as_mapping */
+        0,                              /* tp_hashg */
+        0,                              /* tp_call */
+        0,                              /* tp_str */
+        0,                              /* tp_getattro */
+        0,                              /* tp_setattro */
+        0,                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+        "Encoder object",               /* tp_doc */
+        0,                              /* tp_traverse */
+        0,                              /* tp_clear */
+        0,                              /* tp_richcompare */
+        0,                              /* tp_weaklistoffset */
+        0,                              /* tp_iter */
+        0,                              /* tp_iternext */
+        0,                              /* TODO tp_methods */
+        0,                              /* tp_members */
+        mp3enc_getseters,               /* tp_getset */
+        0,                              /* tp_base */
+        0,                              /* tp_dict */
+        0,                              /* tp_descr_get */
+        0,                              /* tp_descr_set */
+        0,                              /* tp_dictoffset */
+        0,                              /* tp_init */
+        0,                              /* tp_alloc */
+        0,                              /* TODO tp_new */
 };
 
 /* End of code for lame_encode objects */
@@ -2353,9 +2373,6 @@ mp3lame_init(self, args)
     const char*  mp3_filename;
     FILE*  mp3_file;
 
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
-
     rv = newmp3encobject();
     if ( NULL == rv )
         return NULL;
@@ -2373,15 +2390,13 @@ mp3lame_url(self, args)
     mp3encobject *self; /* Not used */
     PyObject *args;
 {
-    if ( !PyArg_ParseTuple(args, "") )
-        return NULL;
-
     return Py_BuildValue("s", get_lame_url());
 }
 
 
 static char mp3lame_version__doc__[] =
-"Returns the used version of LAME: (major, minor, alpha, beta, psy_major, psy_minor, psy_alpha, psy_beta, compile_time_features)"
+"Returns the version of LAME in a tuple: (major, minor, alpha, beta,\n"
+"psy_major, sy_minor, psy_alpha, psy_beta, compile_time_features)"
 ;
 
 
@@ -2391,9 +2406,6 @@ mp3lame_version(self, args)
     PyObject *args;
 {
     lame_version_t version;
-
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
 
     get_lame_version_numerical( &version );
 
@@ -2413,17 +2425,16 @@ mp3lame_version(self, args)
 /* List of methods defined in the module */
 
 static struct PyMethodDef mp3lame_methods[] = {
-{"init",        (PyCFunction)mp3lame_init,        METH_VARARGS, mp3lame_init__doc__},
-{"url",         (PyCFunction)mp3lame_url,         METH_VARARGS, mp3lame_url__doc__ },
-{"version",     (PyCFunction)mp3lame_version,     METH_VARARGS, mp3lame_version__doc__},
-
-{NULL,   (PyCFunction)NULL,            0,            NULL}  /* sentinel */
+    {"init", (PyCFunction)mp3lame_init, METH_NOARGS, mp3lame_init__doc__},
+    {"url", (PyCFunction)mp3lame_url, METH_NOARGS, mp3lame_url__doc__ },
+    {"version", (PyCFunction)mp3lame_version, METH_NOARGS, mp3lame_version__doc__},
+    {NULL}  /* Sentinel */
 };
 
 /* Initialization function for the module (*must* be called initlame) */
 
 static char lame_module_documentation[] =
-"Python modul for the LAME encoding routines."
+"Python module for the LAME encoder."
 ;
 
 void WIN_DLL_HELL
@@ -2480,8 +2491,6 @@ initlame()
     PyModule_AddIntConstant(m, "VBR_MODE_DEFAULT", vbr_default);
 
     d = PyModule_GetDict(m);
-    ErrorObject = PyString_FromString("lame.error");
-    PyDict_SetItemString(d, "error", ErrorObject);
 
     /* Own constants */
     tempobj = PyInt_FromLong(0);
