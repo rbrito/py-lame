@@ -10,7 +10,7 @@
  *   2. Redistributions in binary form must reproduce the above copyright
  *      notice, this list of conditions and the following disclaimer in the
  *      documentation and/or other materials provided with the distribution.
- *   
+ *
  *   THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
  *   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  *   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,23 +31,13 @@
 #include <lame/lame.h>
 #include <stdio.h>
 
-
-#ifdef __WIN32
-#    define WIN_DLL_HELL _declspec(dllexport)
-#else
-#    define WIN_DLL_HELL
-#endif
-
 static void quiet_lib_printf( const char *format, va_list ap )
 {
     return;
 }
 
-static PyObject *ErrorObject;
 
-/* ----------------------------------------------------- */
-
-/* Declarations for objects of type lame_encode */
+/* Declarations for objects of type lame.encoder */
 
 typedef struct {
     PyObject_HEAD
@@ -56,38 +46,55 @@ typedef struct {
     lame_global_flags*  gfp;
     unsigned char*      mp3_buf;
     int                 num_samples;
-} mp3encobject;
+} Encoder;
 
-staticforward PyTypeObject Mp3enctype;
 
-#define mp3encobject_Check(v)    ((v)->ob_type == &Mp3enctype)
-
-/* ---------------------------------------------------------------- */
-
-static char mp3enc_encode__doc__[] = 
-"Not implemented."
-;
+/* BEGIN lame.encoder methods. */
 
 static PyObject *
-mp3enc_encode(self, args)
-        mp3encobject *self;
-        PyObject *args;
+mp3enc_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-        if (!PyArg_ParseTuple(args, ""))
-                return NULL;
-        Py_INCREF(Py_None);
-        return Py_None;
+    Encoder *self;
+
+    self = (Encoder *)type->tp_alloc(type, 0);
+    if (NULL != self) {
+        self->gfp = lame_init();
+        if (NULL == self->gfp) {
+            PyErr_SetString((PyObject *)self, "Can't initialize LAME.");
+            Py_DECREF(self);
+            return NULL;
+        }
+        
+        /* Silence the chatty lame */
+        lame_set_errorf(self->gfp, quiet_lib_printf);
+        lame_set_debugf(self->gfp, quiet_lib_printf);
+        lame_set_msgf(self->gfp, quiet_lib_printf);
+    }
+
+    return (PyObject *)self;
 }
 
 
-static char mp3enc_encode_interleaved__doc__[] = 
+static void
+mp3enc_dealloc(Encoder* self)
+{
+    if (NULL != self->gfp) {
+        lame_close(self->gfp);
+        self->gfp = NULL;
+    }
+
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+
+static char mp3enc_encode_interleaved__doc__[] =
 "Encode interleaved audio data (2 channels, 16 bit per sample).\n"
 "Parameter: audiodata\n"
 "C function: lame_encode_buffer_interleaved()\n"
 ;
 static PyObject *
 mp3enc_encode_interleaved(self, args)
-        mp3encobject *self;
+        Encoder *self;
         PyObject *args;
 {
     int16_t* pcm;
@@ -99,16 +106,16 @@ mp3enc_encode_interleaved(self, args)
         return NULL;
 
     num_channels = lame_get_num_channels(self->gfp);
-    
+
     if ( self->num_samples < num_samples ) {
 	unsigned char *new_buf;
-	
+
 	new_buf = realloc( self->mp3_buf, 1.25*num_samples + 7200 );
 	if ( NULL == new_buf ) {
 	    PyErr_NoMemory();
 	    return NULL;
 	}
-	
+
 	self->mp3_buf     = new_buf;
 	self->num_samples = num_samples;
     }
@@ -156,7 +163,7 @@ mp3enc_encode_interleaved(self, args)
 }
 
 
-static char mp3enc_flush_buffers__doc__[] = 
+static char mp3enc_flush_buffers__doc__[] =
 "Encode remaining samples and flush the MP3 buffer.\n"
 "No parameters.\n"
 "C function: lame_encode_flush()\n"
@@ -164,11 +171,11 @@ static char mp3enc_flush_buffers__doc__[] =
 
 static PyObject *
 mp3enc_flush_buffers(self, args)
-        mp3encobject *self;
+        Encoder *self;
         PyObject *args;
 {
     int mp3_buf_fill_size;
-    
+
     if (!PyArg_ParseTuple(args, ""))
             return NULL;
 
@@ -211,35 +218,6 @@ mp3enc_flush_buffers(self, args)
 }
 
 
-static char mp3enc_delete__doc__[] = 
-"Delete a MP3 encoder object.\n"
-"No parameters.\n"
-"C function: lame_close()\n"
-;
-
-static PyObject *
-mp3enc_delete(self, args)
-        mp3encobject *self;
-        PyObject *args;
-{
-    if (!PyArg_ParseTuple(args, ""))
-            return NULL;
-
-    if ( NULL != self->gfp ) {
-        lame_close( self->gfp );
-        self->gfp = NULL;
-    }
-
-    if ( NULL != self->mp3_buf ) {
-        free( self->mp3_buf );
-        self->mp3_buf = NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_init_parameters__doc__[] =
 "Initializates the internal state of LAME.\n"
 "No paramteres. First you have to use the set_*() functions.\n"
@@ -248,7 +226,7 @@ static char mp3enc_init_parameters__doc__[] =
 
 static PyObject *
 mp3enc_init_parameters(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     if ( !PyArg_ParseTuple( args, "" ) )
@@ -258,7 +236,7 @@ mp3enc_init_parameters(self, args)
 	PyErr_SetString( (PyObject *)self, "no mp3 buffer" );
 	return NULL;
     }
-    
+
     if ( 0 > lame_init_params( self->gfp ) ) {
         PyErr_SetString( (PyObject *)self, "can't init parameters" );
         return NULL;
@@ -278,7 +256,7 @@ static char mp3enc_set_num_samples__doc__[] =
 
 static PyObject *
 mp3enc_set_num_samples(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     unsigned long num_samples;
@@ -305,14 +283,14 @@ static char mp3enc_set_in_samplerate__doc__[] =
 
 static PyObject *
 mp3enc_set_in_samplerate(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int in_samplerate;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &in_samplerate ) )
         return NULL;
-    
+
     if ( 0 > lame_set_in_samplerate( self->gfp, in_samplerate ) ) {
         PyErr_SetString( (PyObject *)self, "can't set samplerate for infile" );
         return NULL;
@@ -332,14 +310,14 @@ static char mp3enc_set_scale__doc__[] =
 
 static PyObject *
 mp3enc_set_scale(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     float scale;
-    
+
     if ( !PyArg_ParseTuple( args, "f", &scale ) )
         return NULL;
-    
+
     if ( 0 > lame_set_scale( self->gfp, scale ) ) {
         PyErr_SetString( (PyObject *)self, "can't set scaling" );
         return NULL;
@@ -359,14 +337,14 @@ static char mp3enc_set_scale_left__doc__[] =
 
 static PyObject *
 mp3enc_set_scale_left(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     float scale_left;
-    
+
     if ( !PyArg_ParseTuple( args, "f", &scale_left ) )
         return NULL;
-    
+
     if ( 0 > lame_set_scale_left( self->gfp, scale_left ) ) {
         PyErr_SetString( (PyObject *)self, "can't set scaling for channel 0 (left)" );
         return NULL;
@@ -386,14 +364,14 @@ static char mp3enc_set_scale_right__doc__[] =
 
 static PyObject *
 mp3enc_set_scale_right(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     float scale_right;
-    
+
     if ( !PyArg_ParseTuple( args, "f", &scale_right ) )
         return NULL;
-    
+
     if ( 0 > lame_set_scale_right( self->gfp, scale_right ) ) {
         PyErr_SetString( (PyObject *)self, "can't set scaling of channel 1 (right)" );
         return NULL;
@@ -413,14 +391,14 @@ static char mp3enc_set_out_samplerate__doc__[] =
 
 static PyObject *
 mp3enc_set_out_samplerate(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int out_samplerate;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &out_samplerate ) )
         return NULL;
-    
+
     if ( 0 > lame_set_out_samplerate( self->gfp, out_samplerate ) ) {
         PyErr_SetString( (PyObject *)self, "can't set output samplerate" );
         return NULL;
@@ -440,14 +418,14 @@ static char mp3enc_set_analysis__doc__[] =
 
 static PyObject *
 mp3enc_set_analysis(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int analysis;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &analysis ) )
         return NULL;
-    
+
     if ( 0 > lame_set_analysis( self->gfp, analysis ) ) {
         PyErr_SetString( (PyObject *)self, "can't set analysis mode" );
         return NULL;
@@ -467,14 +445,14 @@ static char mp3enc_set_write_vbr_tag__doc__[] =
 
 static PyObject *
 mp3enc_set_write_vbr_tag(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int write_vbr_tag;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &write_vbr_tag ) )
         return NULL;
-    
+
     if ( 0 > lame_set_bWriteVbrTag( self->gfp, write_vbr_tag ) ) {
         PyErr_SetString( (PyObject *)self, "can't set write_vbr_tag" );
         return NULL;
@@ -483,35 +461,6 @@ mp3enc_set_write_vbr_tag(self, args)
     Py_INCREF(Py_None);
     return Py_None;
 }
-
-
-#if 0    /* encode only at the moment! */
-static char mp3enc_set_decode_only__doc__[] =
-"Use LAME to decode MP3 to WAVE.\n"
-"Default: 0 (disabled)\n"
-"Parameter: int\n"
-"C function: lame_set_decode_only()\n"
-;
-
-static PyObject *
-mp3enc_set_decode_only(self, args)
-    mp3encobject *self;
-    PyObject *args;
-{
-    int decode_only;
-    
-    if ( !PyArg_ParseTuple( args, "i", &decode_only ) )
-        return NULL;
-    
-    if ( 0 > lame_set_decode_only( self->gfp, decode_only ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set decode only" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-#endif
 
 
 static char mp3enc_set_quality__doc__[] =
@@ -523,14 +472,14 @@ static char mp3enc_set_quality__doc__[] =
 
 static PyObject *
 mp3enc_set_quality(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int quality;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &quality ) )
         return NULL;
-    
+
     if ( 0 > lame_set_quality( self->gfp, quality ) ) {
         PyErr_SetString( (PyObject *)self, "can't set quality" );
         return NULL;
@@ -550,14 +499,14 @@ static char mp3enc_set_mode__doc__[] =
 
 static PyObject *
 mp3enc_set_mode(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int mode;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &mode ) )
         return NULL;
-    
+
     if ( 0 > lame_set_mode( self->gfp, mode ) ) {
         PyErr_SetString( (PyObject *)self, "can't set mode" );
         return NULL;
@@ -577,14 +526,14 @@ static char mp3enc_set_mode_automs__doc__[] =
 
 static PyObject *
 mp3enc_set_mode_automs(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int mode_automs;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &mode_automs ) )
         return NULL;
-    
+
     if ( 0 > lame_set_mode_automs( self->gfp, mode_automs ) ) {
         PyErr_SetString( (PyObject *)self, "can't set mode_automs" );
         return NULL;
@@ -604,14 +553,14 @@ static char mp3enc_set_force_ms__doc__[] =
 
 static PyObject *
 mp3enc_set_force_ms(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int force_ms;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &force_ms ) )
         return NULL;
-    
+
     if ( 0 > lame_set_force_ms( self->gfp, force_ms ) ) {
         PyErr_SetString( (PyObject *)self, "can't force all frames to M/S" );
         return NULL;
@@ -631,14 +580,14 @@ static char mp3enc_set_free_format__doc__[] =
 
 static PyObject *
 mp3enc_set_free_format(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int free_format;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &free_format ) )
         return NULL;
-    
+
     if ( 0 > lame_set_free_format( self->gfp, free_format ) ) {
         PyErr_SetString( (PyObject *)self, "can't set to free format" );
         return NULL;
@@ -658,14 +607,14 @@ static char mp3enc_set_bitrate__doc__[] =
 
 static PyObject *
 mp3enc_set_bitrate(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int brate;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &brate ) )
         return NULL;
-    
+
     if ( 0 > lame_set_brate( self->gfp, brate ) ) {
         PyErr_SetString( (PyObject *)self, "can't set bitrate" );
         return NULL;
@@ -685,14 +634,14 @@ static char mp3enc_set_compression_ratio__doc__[] =
 
 static PyObject *
 mp3enc_set_compression_ratio(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     float compression_ratio;
-    
+
     if ( !PyArg_ParseTuple( args, "f", &compression_ratio ) )
         return NULL;
-    
+
     if ( 0 > lame_set_compression_ratio( self->gfp, compression_ratio ) ) {
         PyErr_SetString( (PyObject *)self, "can't set compression ratio" );
         return NULL;
@@ -714,14 +663,14 @@ static char mp3enc_set_preset__doc__[] =
 
 static PyObject *
 mp3enc_set_preset(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int preset;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &preset ) )
         return NULL;
-    
+
     if ( 0 > lame_set_preset( self->gfp, preset ) ) {
         PyErr_SetString( (PyObject *)self, "can't set preset" );
         return NULL;
@@ -741,14 +690,14 @@ static char mp3enc_set_asm_optimizations__doc__[] =
 
 static PyObject *
 mp3enc_set_asm_optimizations(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int val1, val2;
-    
+
     if ( !PyArg_ParseTuple( args, "ii", &val1, &val2 ) )
         return NULL;
-    
+
     if ( 0 > lame_set_asm_optimizations( self->gfp, val1, val2 ) ) {
         PyErr_SetString( (PyObject *)self, "can't set asm optimizations" );
         return NULL;
@@ -768,14 +717,14 @@ static char mp3enc_set_copyright__doc__[] =
 
 static PyObject *
 mp3enc_set_copyright(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int copyright;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &copyright ) )
         return NULL;
-    
+
     if ( 0 > lame_set_copyright( self->gfp, copyright ) ) {
         PyErr_SetString( (PyObject *)self, "can't set copyright bit" );
         return NULL;
@@ -795,14 +744,14 @@ static char mp3enc_set_original__doc__[] =
 
 static PyObject *
 mp3enc_set_original(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int original;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &original ) )
         return NULL;
-    
+
     if ( 0 > lame_set_original( self->gfp, original ) ) {
         PyErr_SetString( (PyObject *)self, "can't set original bit" );
         return NULL;
@@ -822,14 +771,14 @@ static char mp3enc_set_error_protection__doc__[] =
 
 static PyObject *
 mp3enc_set_error_protection(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int error_protection;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &error_protection ) )
         return NULL;
-    
+
     if ( 0 > lame_set_error_protection( self->gfp, error_protection ) ) {
         PyErr_SetString( (PyObject *)self, "can't set error protection" );
         return NULL;
@@ -849,14 +798,14 @@ static char mp3enc_set_padding_type__doc__[] =
 
 static PyObject *
 mp3enc_set_padding_type(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int padding_type;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &padding_type ) )
         return NULL;
-    
+
     if ( 0 > lame_set_padding_type( self->gfp, padding_type ) ) {
         PyErr_SetString( (PyObject *)self, "can't set padding type" );
         return NULL;
@@ -876,14 +825,14 @@ static char mp3enc_set_extension__doc__[] =
 
 static PyObject *
 mp3enc_set_extension(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int extension;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &extension ) )
         return NULL;
-    
+
     if ( 0 > lame_set_extension( self->gfp, extension ) ) {
         PyErr_SetString( (PyObject *)self, "can't set extension bit" );
         return NULL;
@@ -903,14 +852,14 @@ static char mp3enc_set_strict_iso__doc__[] =
 
 static PyObject *
 mp3enc_set_strict_iso(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int strict_iso;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &strict_iso ) )
         return NULL;
-    
+
     if ( 0 > lame_set_strict_ISO( self->gfp, strict_iso ) ) {
         PyErr_SetString( (PyObject *)self, "can't set strict ISO compliance" );
         return NULL;
@@ -930,14 +879,14 @@ static char mp3enc_set_disable_reservoir__doc__[] =
 
 static PyObject *
 mp3enc_set_disable_reservoir(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int disable_reservoir;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &disable_reservoir ) )
         return NULL;
-    
+
     if ( 0 > lame_set_disable_reservoir( self->gfp, disable_reservoir ) ) {
         PyErr_SetString( (PyObject *)self, "can't set disable_reservoir" );
         return NULL;
@@ -957,14 +906,14 @@ static char mp3enc_set_exp_quantization__doc__[] =
 
 static PyObject *
 mp3enc_set_exp_quantization(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int quantization;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &quantization ) )
         return NULL;
-    
+
     if ( 0 > lame_set_experimentalX( self->gfp, quantization ) ) {
         PyErr_SetString( (PyObject *)self, "can't choose quantization function" );
         return NULL;
@@ -984,14 +933,14 @@ static char mp3enc_set_exp_y__doc__[] =
 
 static PyObject *
 mp3enc_set_exp_y(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int y;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &y ) )
         return NULL;
-    
+
     if ( 0 > lame_set_experimentalY( self->gfp, y ) ) {
         PyErr_SetString( (PyObject *)self, "can't set exp_y" );
         return NULL;
@@ -1011,14 +960,14 @@ static char mp3enc_set_exp_z__doc__[] =
 
 static PyObject *
 mp3enc_set_exp_z(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int z;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &z ) )
         return NULL;
-    
+
     if ( 0 > lame_set_experimentalZ( self->gfp, z ) ) {
         PyErr_SetString( (PyObject *)self, "can't set exp_z" );
         return NULL;
@@ -1038,14 +987,14 @@ static char mp3enc_set_exp_nspsytune__doc__[] =
 
 static PyObject *
 mp3enc_set_exp_nspsytune(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int nspsytune;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &nspsytune ) )
         return NULL;
-    
+
     if ( 0 > lame_set_exp_nspsytune( self->gfp, nspsytune ) ) {
         PyErr_SetString( (PyObject *)self, "can't use nspsytune" );
         return NULL;
@@ -1066,14 +1015,14 @@ static char mp3enc_set_vbr__doc__[] =
 
 static PyObject *
 mp3enc_set_vbr(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int vbr;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &vbr ) )
         return NULL;
-    
+
     if ( 0 > lame_set_VBR( self->gfp, vbr ) ) {
         PyErr_SetString( (PyObject *)self, "can't set VBR mode" );
         return NULL;
@@ -1093,14 +1042,14 @@ static char mp3enc_set_vbr_quality__doc__[] =
 
 static PyObject *
 mp3enc_set_vbr_quality(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int vbr_quality;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &vbr_quality ) )
         return NULL;
-    
+
     if ( 0 > lame_set_VBR_q( self->gfp, vbr_quality ) ) {
         PyErr_SetString( (PyObject *)self, "can't set VBR quality level" );
         return NULL;
@@ -1120,14 +1069,14 @@ static char mp3enc_set_abr_bitrate__doc__[] =
 
 static PyObject *
 mp3enc_set_abr_bitrate(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int abr_bitrate;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &abr_bitrate ) )
         return NULL;
-    
+
     if ( 0 > lame_set_VBR_mean_bitrate_kbps( self->gfp, abr_bitrate ) ) {
         PyErr_SetString( (PyObject *)self, "can't set ABR bitrate" );
         return NULL;
@@ -1147,14 +1096,14 @@ static char mp3enc_set_vbr_min_bitrate__doc__[] =
 
 static PyObject *
 mp3enc_set_vbr_min_bitrate(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int vbr_min_bitrate;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &vbr_min_bitrate ) )
         return NULL;
-    
+
     if ( 0 > lame_set_VBR_min_bitrate_kbps( self->gfp, vbr_min_bitrate ) ) {
         PyErr_SetString( (PyObject *)self, "can't set minimum bitrate" );
         return NULL;
@@ -1174,14 +1123,14 @@ static char mp3enc_set_vbr_max_bitrate__doc__[] =
 
 static PyObject *
 mp3enc_set_vbr_max_bitrate(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int vbr_max_bitrate;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &vbr_max_bitrate ) )
         return NULL;
-    
+
     if ( 0 > lame_set_VBR_max_bitrate_kbps( self->gfp, vbr_max_bitrate ) ) {
         PyErr_SetString( (PyObject *)self, "can't set maximal bitrate" );
         return NULL;
@@ -1202,14 +1151,14 @@ static char mp3enc_set_vbr_min_enforce__doc__[] =
 
 static PyObject *
 mp3enc_set_vbr_min_enforce(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int vbr_min_enforce;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &vbr_min_enforce ) )
         return NULL;
-    
+
     if ( 0 > lame_set_VBR_hard_min( self->gfp, vbr_min_enforce ) ) {
         PyErr_SetString( (PyObject *)self, "can't enforce minimal bitrate" );
         return NULL;
@@ -1229,14 +1178,14 @@ static char mp3enc_set_lowpass_frequency__doc__[] =
 
 static PyObject *
 mp3enc_set_lowpass_frequency(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int lowpass_frequency;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &lowpass_frequency ) )
         return NULL;
-    
+
     if ( 0 > lame_set_lowpassfreq( self->gfp, lowpass_frequency ) ) {
         PyErr_SetString( (PyObject *)self, "can't set lowpass frequency" );
         return NULL;
@@ -1256,14 +1205,14 @@ static char mp3enc_set_lowpass_width__doc__[] =
 
 static PyObject *
 mp3enc_set_lowpass_width(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int lowpass_width;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &lowpass_width ) )
         return NULL;
-    
+
     if ( 0 > lame_set_lowpasswidth( self->gfp, lowpass_width ) ) {
         PyErr_SetString( (PyObject *)self, "can't set width of lowpass" );
         return NULL;
@@ -1283,14 +1232,14 @@ static char mp3enc_set_highpass_frequency__doc__[] =
 
 static PyObject *
 mp3enc_set_highpass_frequency(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int highpass_frequency;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &highpass_frequency ) )
         return NULL;
-    
+
     if ( 0 > lame_set_highpassfreq( self->gfp, highpass_frequency ) ) {
         PyErr_SetString( (PyObject *)self, "can't set highpass frequency" );
         return NULL;
@@ -1310,14 +1259,14 @@ static char mp3enc_set_highpass_width__doc__[] =
 
 static PyObject *
 mp3enc_set_highpass_width(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int highpass_width;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &highpass_width ) )
         return NULL;
-    
+
     if ( 0 > lame_set_highpasswidth( self->gfp, highpass_width ) ) {
         PyErr_SetString( (PyObject *)self, "can't set highpass width" );
         return NULL;
@@ -1337,14 +1286,14 @@ static char mp3enc_set_ath_for_masking_only__doc__[] =
 
 static PyObject *
 mp3enc_set_ath_for_masking_only(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int ath_for_masking_only;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &ath_for_masking_only) )
         return NULL;
-    
+
     if ( 0 > lame_set_ATHonly( self->gfp, ath_for_masking_only ) ) {
         PyErr_SetString( (PyObject *)self, "can't set ath_for_masking_only" );
         return NULL;
@@ -1364,14 +1313,14 @@ static char mp3enc_set_ath_for_short_only__doc__[] =
 
 static PyObject *
 mp3enc_set_ath_for_short_only(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int ath_for_short_only;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &ath_for_short_only ) )
         return NULL;
-    
+
     if ( 0 > lame_set_ATHshort( self->gfp, ath_for_short_only ) ) {
         PyErr_SetString( (PyObject *)self, "can't set ath_for_short_only" );
         return NULL;
@@ -1391,14 +1340,14 @@ static char mp3enc_set_ath_disable__doc__[] =
 
 static PyObject *
 mp3enc_set_ath_disable(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int ath_disable;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &ath_disable ) )
         return NULL;
-    
+
     if ( 0 > lame_set_noATH( self->gfp, ath_disable ) ) {
         PyErr_SetString( (PyObject *)self, "can't disable ATH" );
         return NULL;
@@ -1418,14 +1367,14 @@ static char mp3enc_set_ath_type__doc__[] =
 
 static PyObject *
 mp3enc_set_ath_type(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int ath_type;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &ath_type ) )
         return NULL;
-    
+
     if ( 0 > lame_set_ATHtype( self->gfp, ath_type ) ) {
         PyErr_SetString( (PyObject *)self, "can't set ATH type" );
         return NULL;
@@ -1445,14 +1394,14 @@ static char mp3enc_set_ath_lower__doc__[] =
 
 static PyObject *
 mp3enc_set_ath_lower(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int ath_lower;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &ath_lower ) )
         return NULL;
-    
+
     if ( 0 > lame_set_ATHlower( self->gfp, ath_lower ) ) {
         PyErr_SetString( (PyObject *)self, "can't lower ATH" );
         return NULL;
@@ -1472,14 +1421,14 @@ static char mp3enc_set_athaa_type__doc__[] =
 
 static PyObject *
 mp3enc_set_athaa_type(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int athaa_type;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &athaa_type ) )
         return NULL;
-    
+
     if ( 0 > lame_set_athaa_type( self->gfp, athaa_type ) ) {
         PyErr_SetString( (PyObject *)self, "can't select type of ATH adaptive adjustment" );
         return NULL;
@@ -1499,14 +1448,14 @@ static char mp3enc_set_athaa_loudness_approximation__doc__[] =
 
 static PyObject *
 mp3enc_set_athaa_loudness_approximation(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int athaa_loudness_approximation;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &athaa_loudness_approximation ) )
         return NULL;
-    
+
     if ( 0 > lame_set_athaa_loudapprox( self->gfp, athaa_loudness_approximation ) ) {
         PyErr_SetString( (PyObject *)self, "can't set loudness approximation" );
         return NULL;
@@ -1526,14 +1475,14 @@ static char mp3enc_set_athaa_sensitivity__doc__[] =
 
 static PyObject *
 mp3enc_set_athaa_sensitivity(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int athaa_sensitivity;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &athaa_sensitivity ) )
         return NULL;
-    
+
     if ( 0 > lame_set_athaa_sensitivity( self->gfp, athaa_sensitivity ) ) {
         PyErr_SetString( (PyObject *)self, "can't set ATHaa sensitivity" );
         return NULL;
@@ -1553,14 +1502,14 @@ static char mp3enc_set_predictability_limit__doc__[] =
 
 static PyObject *
 mp3enc_set_predictability_limit(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int predictability_limit;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &predictability_limit ) )
         return NULL;
-    
+
     if ( 0 > lame_set_cwlimit( self->gfp, predictability_limit ) ) {
         PyErr_SetString( (PyObject *)self, "can't set predictability limit for ISO tonality formula" );
         return NULL;
@@ -1580,14 +1529,14 @@ static char mp3enc_set_allow_blocktype_difference__doc__[] =
 
 static PyObject *
 mp3enc_set_allow_blocktype_difference(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int allow_blocktype_difference;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &allow_blocktype_difference ) )
         return NULL;
-    
+
     if ( 0 > lame_set_allow_diff_short( self->gfp, allow_blocktype_difference ) ) {
         PyErr_SetString( (PyObject *)self, "can't set allow_blocktype_difference" );
         return NULL;
@@ -1607,14 +1556,14 @@ static char mp3enc_set_use_temporal_masking__doc__[] =
 
 static PyObject *
 mp3enc_set_use_temporal_masking(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int use_temporal_masking;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &use_temporal_masking ) )
         return NULL;
-    
+
     if ( 0 > lame_set_useTemporal( self->gfp, use_temporal_masking ) ) {
         PyErr_SetString( (PyObject *)self, "can't change temporal masking" );
         return NULL;
@@ -1634,14 +1583,14 @@ static char mp3enc_set_inter_channel_ratio__doc__[] =
 
 static PyObject *
 mp3enc_set_inter_channel_ratio(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     float inter_channel_ratio;
-    
+
     if ( !PyArg_ParseTuple( args, "f", &inter_channel_ratio ) )
         return NULL;
-    
+
     if ( 0 > lame_set_interChRatio( self->gfp, inter_channel_ratio ) ) {
         PyErr_SetString( (PyObject *)self, "can't change inter channel ratio" );
         return NULL;
@@ -1661,14 +1610,14 @@ static char mp3enc_set_substep__doc__[] =
 
 static PyObject *
 mp3enc_set_substep(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int substep;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &substep ) )
         return NULL;
-    
+
     if ( 0 > lame_set_substep( self->gfp, substep ) ) {
         PyErr_SetString( (PyObject *)self, "can't change substep shaping method" );
         return NULL;
@@ -1688,14 +1637,14 @@ static char mp3enc_set_no_short_blocks__doc__[] =
 
 static PyObject *
 mp3enc_set_no_short_blocks(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int no_short_blocks;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &no_short_blocks ) )
         return NULL;
-    
+
     if ( 0 > lame_set_no_short_blocks( self->gfp, no_short_blocks ) ) {
         PyErr_SetString( (PyObject *)self, "can't change the use of short blocks" );
         return NULL;
@@ -1715,14 +1664,14 @@ static char mp3enc_set_force_short_blocks__doc__[] =
 
 static PyObject *
 mp3enc_set_force_short_blocks(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int force_short_blocks;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &force_short_blocks ) )
         return NULL;
-    
+
     if ( 0 > lame_set_force_short_blocks( self->gfp, force_short_blocks ) ) {
         PyErr_SetString( (PyObject *)self, "can't force short blocks" );
         return NULL;
@@ -1740,14 +1689,14 @@ static char mp3enc_get_frame_num__doc__[] =
 
 static PyObject *
 mp3enc_get_frame_num(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int frame_num;
-    
+
     if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
-    
+
     frame_num = lame_get_frameNum( self->gfp );
 
     return Py_BuildValue( "i", frame_num );
@@ -1762,14 +1711,14 @@ static char mp3enc_get_total_frames__doc__[] =
 
 static PyObject *
 mp3enc_get_total_frames(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int total_frames;
-    
+
     if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
-    
+
     total_frames = lame_get_totalframes( self->gfp );
 
     return Py_BuildValue( "i", total_frames );
@@ -1783,15 +1732,15 @@ static char mp3enc_get_bitrate_histogram__doc__[] =
 
 static PyObject *
 mp3enc_get_bitrate_histogram(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int bitrate_count[14];
     int bitrate_value[14];
-    
+
     if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
-    
+
     lame_bitrate_kbps( self->gfp, bitrate_value );
     lame_bitrate_hist( self->gfp, bitrate_count );
 
@@ -1834,14 +1783,14 @@ static char mp3enc_get_bitrate_values__doc__[] =
 
 static PyObject *
 mp3enc_get_bitrate_values(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int bitrate_count[14];
-    
+
     if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
-    
+
     lame_bitrate_kbps( self->gfp, bitrate_count );
 
     return Py_BuildValue( "(iiiiiiiiiiiiii)",
@@ -1869,14 +1818,14 @@ static char mp3enc_get_bitrate_stereo_mode_histogram__doc__[] =
 
 static PyObject *
 mp3enc_get_bitrate_stereo_mode_histogram(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int bitrate_stmode_count[14][4];
-    
+
     if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
-    
+
     lame_bitrate_stereo_mode_hist( self->gfp, bitrate_stmode_count );
 
     return Py_BuildValue( "({sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi}{sisisisi})",
@@ -1946,14 +1895,14 @@ static char mp3enc_get_stereo_mode_histogram__doc__[] =
 
 static PyObject *
 mp3enc_get_stereo_mode_histogram(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     int stmode_count[4];
-    
+
     if ( !PyArg_ParseTuple( args, "" ) )
         return NULL;
-    
+
     lame_stereo_mode_hist( self->gfp, stmode_count );
 
     return Py_BuildValue( "{sisisisi}",
@@ -1974,11 +1923,11 @@ extern void lame_set_msfix( lame_t, double );
 
 static PyObject *
 mp3enc_set_exp_msfix(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     double msfix;
-    
+
     if ( !PyArg_ParseTuple( args, "d", &msfix ) )
         return NULL;
 
@@ -1999,11 +1948,11 @@ extern int lame_set_preset_expopts( lame_t, int );
 
 static PyObject *
 mp3enc_set_exp_preset_expopts(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     double preset_expopts;
-    
+
     if ( !PyArg_ParseTuple( args, "i", &preset_expopts ) )
         return NULL;
 
@@ -2022,20 +1971,20 @@ static char mp3enc_write_tags__doc__[] =
 
 static PyObject *
 mp3enc_write_tags(self, args)
-    mp3encobject *self;
+    Encoder *self;
     PyObject *args;
 {
     PyObject *object;
     FILE *mp3_file;
-    
+
     if ( !PyArg_ParseTuple( args, "O", &object ) )
         return NULL;
 
     if ( 0 == PyFile_Check( object ) )
 	return NULL;
-    
+
     mp3_file = PyFile_AsFile( object );
-    
+
     lame_mp3_tags_fid( self->gfp, mp3_file );
 
     Py_INCREF(Py_None);
@@ -2044,14 +1993,10 @@ mp3enc_write_tags(self, args)
 
 
 static struct PyMethodDef mp3enc_methods[] = {
-    {"encode", (PyCFunction)mp3enc_encode,
-        METH_VARARGS, mp3enc_encode__doc__                           },
     {"encode_interleaved", (PyCFunction)mp3enc_encode_interleaved,
         METH_VARARGS, mp3enc_encode_interleaved__doc__               },
     {"flush_buffers", (PyCFunction)mp3enc_flush_buffers,
 	METH_VARARGS, mp3enc_flush_buffers__doc__                    },
-    {"delete", (PyCFunction)mp3enc_delete,
-        METH_VARARGS, mp3enc_delete__doc__                           },
     {"init_parameters", (PyCFunction)mp3enc_init_parameters,
 	METH_VARARGS, mp3enc_init_parameters__doc__                  },
     {"set_num_samples", (PyCFunction)mp3enc_set_num_samples,
@@ -2070,10 +2015,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_analysis__doc__                     },
     {"set_write_vbr_tag", (PyCFunction)mp3enc_set_write_vbr_tag,
 	METH_VARARGS, mp3enc_set_write_vbr_tag__doc__                },
-#if 0
-    {"set_decode_only", (PyCFunction)mp3enc_set_decode_only,
-	METH_VARARGS, mp3enc_set_decode_only__doc__                  },
-#endif
     {"set_quality", (PyCFunction)mp3enc_set_quality,
 	METH_VARARGS, mp3enc_set_quality__doc__                       },
     {"set_mode", (PyCFunction)mp3enc_set_mode,
@@ -2176,92 +2117,19 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_get_bitrate_stereo_mode_histogram__doc__ },
     {"get_stereo_mode_histogram", (PyCFunction)mp3enc_get_stereo_mode_histogram,
 	METH_VARARGS, mp3enc_get_stereo_mode_histogram__doc__         },
-
     {"set_exp_msfix", (PyCFunction)mp3enc_set_exp_msfix,
 	METH_VARARGS, mp3enc_set_exp_msfix__doc__            },
     {"set_exp_preset_expopts", (PyCFunction)mp3enc_set_exp_preset_expopts,
 	METH_VARARGS, mp3enc_set_exp_preset_expopts__doc__            },
     {"write_tags", (PyCFunction)mp3enc_write_tags,
 	METH_VARARGS, mp3enc_write_tags__doc__                        },
-#if 0
-    {"set_", (PyCFunction)mp3enc_set_,
-	METH_VARARGS, mp3enc_set___doc__          },
-    {"set_", (PyCFunction)mp3enc_set_,
-	METH_VARARGS, mp3enc_set___doc__          },
-    {"set_", (PyCFunction)mp3enc_set_,
-	METH_VARARGS, mp3enc_set___doc__          },
-#endif
-    
-    {NULL,    NULL}           /* sentinel */
+    {NULL,    NULL}  /* Sentinel */
 };
 
-/* ---------- */
-
-static PyObject *
-mp3enc_dealloc( mp3encobject *self );
-
-static mp3encobject *
-newmp3encobject( void )
-{
-    mp3encobject *self;
-        
-    self = PyObject_NEW( mp3encobject, &Mp3enctype );
-    if ( self == NULL ) {
-        PyErr_SetString( (PyObject *)NULL, "can't init myself" );
-        return NULL;
-    }
-
-    /* XXXX Add your own initializers here */
-    self->mp3enc_attr = NULL;
-    self->gfp         = lame_init();
-    if ( NULL == self->gfp ) {
-        PyErr_SetString( (PyObject *)self, "can't init LAME" );
-        return (mp3encobject *)mp3enc_dealloc( self );
-    }
-
-    /* later */
-    self->num_samples        = 2;
-    self->mp3_buf            = NULL;
-
-    /* we don't want output from the lib */
-    lame_set_errorf( self->gfp, quiet_lib_printf );
-    lame_set_debugf( self->gfp, quiet_lib_printf );
-    lame_set_msgf  ( self->gfp, quiet_lib_printf );
-
-    self->mp3_buf = malloc( 1.25*self->num_samples + 7200 );
-    if ( NULL == self->mp3_buf ) {
-        PyErr_NoMemory();
-        return (mp3encobject *)mp3enc_dealloc( self );
-    }
-
-    return self;
-}
-
-
-static PyObject *
-mp3enc_dealloc(self)
-        mp3encobject *self;
-{
-        /* XXXX Add your own cleanup code here */
-        if ( NULL != self->gfp ) {
-            lame_close( self->gfp );
-            self->gfp = NULL;
-        }
-
-        if ( NULL != self->mp3_buf ) {
-            free( self->mp3_buf );
-            self->mp3_buf = NULL;
-        }
-
-        Py_XDECREF(self->mp3enc_attr);
-        PyMem_DEL(self);
-
-        return NULL;
-}
 
 static PyObject *
 mp3enc_getattr(self, name)
-        mp3encobject *self;
+        Encoder *self;
         char *name;
 {
         /* XXXX Add your own getattr code here */
@@ -2277,14 +2145,14 @@ mp3enc_getattr(self, name)
 
 
 static PyObject *
-mp3enc_get_num_channels(mp3encobject *self, void *closure)
+mp3enc_get_num_channels(Encoder *self, void *closure)
 {
     return Py_BuildValue("i", lame_get_num_channels(self->gfp));
 }
 
 
 static int
-mp3enc_set_num_channels(mp3encobject *self, PyObject *value, void *closure)
+mp3enc_set_num_channels(Encoder *self, PyObject *value, void *closure)
 {
     if (value == NULL) {
         PyErr_SetString(PyExc_TypeError, "Cannot delete the num_channels attribute");
@@ -2312,17 +2180,17 @@ static PyGetSetDef mp3enc_getseters[] = {
     {NULL} /* Sentinel */
 };
 
-
-static PyTypeObject Mp3enctype = {
+/* Encoder type declaration */
+static PyTypeObject EncoderType = {
         PyObject_HEAD_INIT(NULL)
         0,                              /* ob_size */
         "lame.encoder",                 /* tp_name */
-        sizeof(mp3encobject),           /* tp_basicsize */
+        sizeof(Encoder),                /* tp_basicsize */
         0,                              /* tp_itemsize */
         /* methods */
         (destructor)mp3enc_dealloc,     /* tp_dealloc */
         0,                              /* tp_print */
-        (getattrfunc)mp3enc_getattr,    /* tp_getattr */
+        0,                              /* tp_getattr */
         0,                              /* tp_setattr */
         0,                              /* tp_compare */
         0,                              /* tp_repr */
@@ -2336,14 +2204,14 @@ static PyTypeObject Mp3enctype = {
         0,                              /* tp_setattro */
         0,                              /* tp_as_buffer */
         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-        "Encoder object",               /* tp_doc */
+        "Encoder object.",              /* tp_doc */
         0,                              /* tp_traverse */
         0,                              /* tp_clear */
         0,                              /* tp_richcompare */
         0,                              /* tp_weaklistoffset */
         0,                              /* tp_iter */
         0,                              /* tp_iternext */
-        0,                              /* TODO tp_methods */
+        mp3enc_methods,                 /* TODO tp_methods */
         0,                              /* tp_members */
         mp3enc_getseters,               /* tp_getset */
         0,                              /* tp_base */
@@ -2353,42 +2221,16 @@ static PyTypeObject Mp3enctype = {
         0,                              /* tp_dictoffset */
         0,                              /* tp_init */
         0,                              /* tp_alloc */
-        0,                              /* TODO tp_new */
+        mp3enc_new,                     /* tp_new */
 };
 
-/* End of code for lame_encode objects */
-/* -------------------------------------------------------- */
 
+/* BEGIN lame module functions */
 
-static char mp3lame_init__doc__[] =
-"Initialize an mp3 encoder object"
-;
+static char mp3lame_url__doc__[] = "Deprecated: Use lame.LAME_URL";
 
 static PyObject *
-mp3lame_init(self, args)
-        PyObject *self; /* Not used */
-        PyObject *args;
-{
-    mp3encobject* rv;
-    const char*  mp3_filename;
-    FILE*  mp3_file;
-
-    rv = newmp3encobject();
-    if ( NULL == rv )
-        return NULL;
-
-    return (PyObject *)rv;
-}
-
-
-static char mp3lame_url__doc__[] =
-"Returns the URL for the LAME website."
-;
-
-static PyObject *
-mp3lame_url(self, args)
-    mp3encobject *self; /* Not used */
-    PyObject *args;
+mp3lame_url(Encoder *self, PyObject *args)
 {
     return Py_BuildValue("s", get_lame_url());
 }
@@ -2399,11 +2241,8 @@ static char mp3lame_version__doc__[] =
 "psy_major, sy_minor, psy_alpha, psy_beta, compile_time_features)"
 ;
 
-
 static PyObject *
-mp3lame_version(self, args)
-    PyObject *self; /* Not used */
-    PyObject *args;
+mp3lame_version(PyObject *self, PyObject *args)
 {
     lame_version_t version;
 
@@ -2422,11 +2261,12 @@ mp3lame_version(self, args)
 }
 
 
+/* END lame module functions. */
+
 /* List of methods defined in the module */
 
 static struct PyMethodDef mp3lame_methods[] = {
-    {"init", (PyCFunction)mp3lame_init, METH_NOARGS, mp3lame_init__doc__},
-    {"url", (PyCFunction)mp3lame_url, METH_NOARGS, mp3lame_url__doc__ },
+    {"url", (PyCFunction)mp3lame_url, METH_NOARGS, mp3lame_url__doc__},
     {"version", (PyCFunction)mp3lame_version, METH_NOARGS, mp3lame_version__doc__},
     {NULL}  /* Sentinel */
 };
@@ -2437,17 +2277,22 @@ static char lame_module_documentation[] =
 "Python module for the LAME encoder."
 ;
 
-void WIN_DLL_HELL
+PyMODINIT_FUNC
 initlame()
 {
-    PyObject *m, *d, *tempobj;
+    PyObject *m;
 
-    /* Initialize the type of the new type object here; doing it here
-     * is required for portability to Windows without requiring C++. */
-    Mp3enctype.ob_type = &PyType_Type;
+    if (PyType_Ready(&EncoderType) < 0)
+        return;
 
     /* Create the module and add the functions */
     m = Py_InitModule3("lame", mp3lame_methods, lame_module_documentation);
+    if (NULL == m)
+        return;
+
+    /* Register the lame.encoder object type */
+    Py_INCREF(&EncoderType);
+    PyModule_AddObject(m, "encoder", (PyObject *)&EncoderType);
 
     /* Add some symbolic constants to the module */
     /* String version constants for convenience. */
@@ -2482,7 +2327,7 @@ initlame()
     PyModule_AddIntConstant(m, "PRESET_EXTREME_FAST", EXTREME_FAST);
     PyModule_AddIntConstant(m, "PRESET_MEDIUM", MEDIUM);
     PyModule_AddIntConstant(m, "PRESET_MEDIUM_FAST", MEDIUM_FAST);
-    
+
     /* Expose VBR encoding modes. */
     PyModule_AddIntConstant(m, "VBR_MODE_OFF", vbr_off);
     PyModule_AddIntConstant(m, "VBR_MODE_RH", vbr_rh);
@@ -2490,30 +2335,19 @@ initlame()
     PyModule_AddIntConstant(m, "VBR_MODE_MTRH", vbr_mtrh);
     PyModule_AddIntConstant(m, "VBR_MODE_DEFAULT", vbr_default);
 
-    d = PyModule_GetDict(m);
+    /* TODO Convert these names to better things... */
+    PyModule_AddIntConstant(m, "STEREO", 0);
+    PyModule_AddIntConstant(m, "JOINT_STEREO", 1);
+    PyModule_AddIntConstant(m, "DUAL", 2);
+    PyModule_AddIntConstant(m, "MONO", 3);
 
-    /* Own constants */
-    tempobj = PyInt_FromLong(0);
-    PyDict_SetItemString(d, "STEREO", tempobj);
-    PyDict_SetItemString(d, "PAD_NO", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(1);
-    PyDict_SetItemString(d, "JOINT_STEREO", tempobj);
-    PyDict_SetItemString(d, "PAD_ALL", tempobj);
-    PyDict_SetItemString(d, "ASM_MMX", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(2);
-    PyDict_SetItemString(d, "DUAL", tempobj);
-    PyDict_SetItemString(d, "PAD_ADJUST", tempobj);
-    PyDict_SetItemString(d, "ASM_3DNOW", tempobj);
-    Py_DECREF(tempobj);
-    
-    tempobj = PyInt_FromLong(3);
-    PyDict_SetItemString(d, "MONO", tempobj);
-    PyDict_SetItemString(d, "ASM_SSE", tempobj);
-    Py_DECREF(tempobj);
+    PyModule_AddIntConstant(m, "PAD_NO", 0);
+    PyModule_AddIntConstant(m, "PAD_ALL", 1);
+    PyModule_AddIntConstant(m, "PAD_ADJUST", 2);
+
+    PyModule_AddIntConstant(m, "ASM_MMX", 1);
+    PyModule_AddIntConstant(m, "ASM_3DNOW", 2);
+    PyModule_AddIntConstant(m, "ASM_SSE", 3);
 
     /* Check for errors */
     if (PyErr_Occurred())
