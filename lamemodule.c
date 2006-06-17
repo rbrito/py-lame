@@ -170,14 +170,9 @@ static char mp3enc_flush_buffers__doc__[] =
 ;
 
 static PyObject *
-mp3enc_flush_buffers(self, args)
-        Encoder *self;
-        PyObject *args;
+mp3enc_flush_buffers(Encoder *self, PyObject *args)
 {
     int mp3_buf_fill_size;
-
-    if (!PyArg_ParseTuple(args, ""))
-            return NULL;
 
     mp3_buf_fill_size = lame_encode_flush( self->gfp, self->mp3_buf,
                                            self->num_samples );
@@ -225,20 +220,15 @@ static char mp3enc_init_parameters__doc__[] =
 ;
 
 static PyObject *
-mp3enc_init_parameters(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_init_parameters(Encoder *self, PyObject *args)
 {
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
-
     if ( NULL == self->mp3_buf ) {
 	PyErr_SetString( (PyObject *)self, "no mp3 buffer" );
 	return NULL;
     }
 
     if ( 0 > lame_init_params( self->gfp ) ) {
-        PyErr_SetString( (PyObject *)self, "can't init parameters" );
+        PyErr_SetString( (PyObject *)self, "Can't initialize LAME parameters." );
         return NULL;
     }
 
@@ -653,11 +643,8 @@ mp3enc_set_compression_ratio(self, args)
 
 
 static char mp3enc_set_preset__doc__[] =
-"Set a buildin preset.\n"
-"Paramter: int (bitrate) or lame.PRESET_R3MIX, lame.PRESET_STANDARD,\n"
-"          lame.PRESET_STANDARD_FAST, lame.PRESET_EXTREME,\n"
-"          lame.PRESET_EXTREME_FAST, lame.PRESET_INSANE,\n"
-"          lame.PRESET_MEDIUM, lame.PRESET_MEDIUM_FAST\n"
+"Set a built-in preset.  Paramter: int (bitrate) or any of the\n"
+"lame.PRESET_* contstants.\n"
 "C function: lame_set_preset()\n"
 ;
 
@@ -1688,18 +1675,13 @@ static char mp3enc_get_frame_num__doc__[] =
 ;
 
 static PyObject *
-mp3enc_get_frame_num(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_get_frame_num(Encoder *self, PyObject *args)
 {
     int frame_num;
 
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
+    frame_num = lame_get_frameNum(self->gfp);
 
-    frame_num = lame_get_frameNum( self->gfp );
-
-    return Py_BuildValue( "i", frame_num );
+    return Py_BuildValue("i", frame_num);
 }
 
 
@@ -1710,18 +1692,13 @@ static char mp3enc_get_total_frames__doc__[] =
 ;
 
 static PyObject *
-mp3enc_get_total_frames(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_get_total_frames(Encoder *self, PyObject *args)
 {
     int total_frames;
 
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
+    total_frames = lame_get_totalframes(self->gfp);
 
-    total_frames = lame_get_totalframes( self->gfp );
-
-    return Py_BuildValue( "i", total_frames );
+    return Py_BuildValue("i", total_frames);
 }
 
 
@@ -1731,15 +1708,10 @@ static char mp3enc_get_bitrate_histogram__doc__[] =
 ;
 
 static PyObject *
-mp3enc_get_bitrate_histogram(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_get_bitrate_histogram(Encoder *self, PyObject *args)
 {
     int bitrate_count[14];
     int bitrate_value[14];
-
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
 
     lame_bitrate_kbps( self->gfp, bitrate_value );
     lame_bitrate_hist( self->gfp, bitrate_count );
@@ -1782,14 +1754,9 @@ static char mp3enc_get_bitrate_values__doc__[] =
 ;
 
 static PyObject *
-mp3enc_get_bitrate_values(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_get_bitrate_values(Encoder *self, PyObject *args)
 {
     int bitrate_count[14];
-
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
 
     lame_bitrate_kbps( self->gfp, bitrate_count );
 
@@ -1817,14 +1784,9 @@ static char mp3enc_get_bitrate_stereo_mode_histogram__doc__[] =
 ;
 
 static PyObject *
-mp3enc_get_bitrate_stereo_mode_histogram(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_get_bitrate_stereo_mode_histogram(Encoder *self, PyObject *args)
 {
     int bitrate_stmode_count[14][4];
-
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
 
     lame_bitrate_stereo_mode_hist( self->gfp, bitrate_stmode_count );
 
@@ -1894,14 +1856,9 @@ static char mp3enc_get_stereo_mode_histogram__doc__[] =
 ;
 
 static PyObject *
-mp3enc_get_stereo_mode_histogram(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_get_stereo_mode_histogram(Encoder *self, PyObject *args)
 {
     int stmode_count[4];
-
-    if ( !PyArg_ParseTuple( args, "" ) )
-        return NULL;
 
     lame_stereo_mode_hist( self->gfp, stmode_count );
 
@@ -1996,9 +1953,9 @@ static struct PyMethodDef mp3enc_methods[] = {
     {"encode_interleaved", (PyCFunction)mp3enc_encode_interleaved,
         METH_VARARGS, mp3enc_encode_interleaved__doc__               },
     {"flush_buffers", (PyCFunction)mp3enc_flush_buffers,
-	METH_VARARGS, mp3enc_flush_buffers__doc__                    },
+        METH_NOARGS, mp3enc_flush_buffers__doc__},
     {"init_parameters", (PyCFunction)mp3enc_init_parameters,
-	METH_VARARGS, mp3enc_init_parameters__doc__                  },
+        METH_NOARGS, mp3enc_init_parameters__doc__},
     {"set_num_samples", (PyCFunction)mp3enc_set_num_samples,
 	METH_VARARGS, mp3enc_set_num_samples__doc__                  },
     {"set_in_samplerate", (PyCFunction)mp3enc_set_in_samplerate,
@@ -2106,17 +2063,17 @@ static struct PyMethodDef mp3enc_methods[] = {
     {"set_force_short_blocks", (PyCFunction)mp3enc_set_force_short_blocks,
 	METH_VARARGS, mp3enc_set_force_short_blocks__doc__            },
     {"get_frame_num", (PyCFunction)mp3enc_get_frame_num,
-	METH_VARARGS, mp3enc_get_frame_num__doc__                     },
+        METH_NOARGS, mp3enc_get_frame_num__doc__},
     {"get_total_frames", (PyCFunction)mp3enc_get_total_frames,
-	METH_VARARGS, mp3enc_get_total_frames__doc__                  },
+        METH_NOARGS, mp3enc_get_total_frames__doc__},
     {"get_bitrate_histogram", (PyCFunction)mp3enc_get_bitrate_histogram,
-	METH_VARARGS, mp3enc_get_bitrate_histogram__doc__             },
+        METH_NOARGS, mp3enc_get_bitrate_histogram__doc__},
     {"get_bitrate_values", (PyCFunction)mp3enc_get_bitrate_values,
-	METH_VARARGS, mp3enc_get_bitrate_values__doc__                },
+        METH_NOARGS, mp3enc_get_bitrate_values__doc__},
     {"get_bitrate_stereo_mode_histogram", (PyCFunction)mp3enc_get_bitrate_stereo_mode_histogram,
-	METH_VARARGS, mp3enc_get_bitrate_stereo_mode_histogram__doc__ },
+        METH_NOARGS, mp3enc_get_bitrate_stereo_mode_histogram__doc__ },
     {"get_stereo_mode_histogram", (PyCFunction)mp3enc_get_stereo_mode_histogram,
-	METH_VARARGS, mp3enc_get_stereo_mode_histogram__doc__         },
+        METH_NOARGS, mp3enc_get_stereo_mode_histogram__doc__},
     {"set_exp_msfix", (PyCFunction)mp3enc_set_exp_msfix,
 	METH_VARARGS, mp3enc_set_exp_msfix__doc__            },
     {"set_exp_preset_expopts", (PyCFunction)mp3enc_set_exp_preset_expopts,
@@ -2336,18 +2293,18 @@ initlame()
     PyModule_AddIntConstant(m, "VBR_MODE_DEFAULT", vbr_default);
 
     /* TODO Convert these names to better things... */
-    PyModule_AddIntConstant(m, "STEREO", 0);
-    PyModule_AddIntConstant(m, "JOINT_STEREO", 1);
-    PyModule_AddIntConstant(m, "DUAL", 2);
-    PyModule_AddIntConstant(m, "MONO", 3);
+    PyModule_AddIntConstant(m, "MPEG_MODE_STEREO", STEREO);
+    PyModule_AddIntConstant(m, "MPEG_MODE_JOINT_STEREO", JOINT_STEREO);
+    PyModule_AddIntConstant(m, "MPEG_MODE_DUAL", DUAL_CHANNEL);
+    PyModule_AddIntConstant(m, "MPEG_MODE_MONO", MONO);
 
-    PyModule_AddIntConstant(m, "PAD_NO", 0);
-    PyModule_AddIntConstant(m, "PAD_ALL", 1);
-    PyModule_AddIntConstant(m, "PAD_ADJUST", 2);
+    PyModule_AddIntConstant(m, "PAD_NO", PAD_NO);
+    PyModule_AddIntConstant(m, "PAD_ALL", PAD_ALL);
+    PyModule_AddIntConstant(m, "PAD_ADJUST", PAD_ADJUST);
 
-    PyModule_AddIntConstant(m, "ASM_MMX", 1);
-    PyModule_AddIntConstant(m, "ASM_3DNOW", 2);
-    PyModule_AddIntConstant(m, "ASM_SSE", 3);
+    PyModule_AddIntConstant(m, "ASM_MMX", MMX);
+    PyModule_AddIntConstant(m, "ASM_3DNOW", AMD_3DNOW);
+    PyModule_AddIntConstant(m, "ASM_SSE", SSE);
 
     /* Check for errors */
     if (PyErr_Occurred())
