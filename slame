@@ -207,7 +207,7 @@ def get_defaults():
     bitrate = lame.PRESET_STANDARD
     verbose = 0
     quiet   = 0
-    vbr     = lame.VBR_DEFAULT
+    vbr     = lame.VBR_MODE_DEFAULT
     use_gui = 0
 
     return bitrate, verbose, quiet, vbr, use_gui
@@ -285,7 +285,7 @@ def open_soundfile_or_exit(file):
 
 def is_readable_or_exit(file):
     if 1 != os.access(file, os.R_OK):
-        print 'File »' + file + '« not readable.'
+        print 'File "' + file + '" not readable.'
         sys.exit(1)
 
 
