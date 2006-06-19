@@ -1887,8 +1887,6 @@ static char mp3enc_set_exp_msfix__doc__[] =
 "C function: lame_set_msfix()\n"
 ;
 
-extern void lame_set_msfix( lame_t, double );
-
 static PyObject *
 mp3enc_set_exp_msfix(self, args)
     Encoder *self;
@@ -1911,8 +1909,6 @@ static char mp3enc_set_exp_preset_expopts__doc__[] =
 "Parameter: int\n"
 "C function: lame_set_preset_expopts()\n"
 ;
-
-extern int lame_set_preset_expopts( lame_t, int );
 
 static PyObject *
 mp3enc_set_exp_preset_expopts(self, args)
