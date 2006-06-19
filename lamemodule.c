@@ -83,8 +83,43 @@ mp3enc_dealloc(Encoder* self)
         self->gfp = NULL;
     }
 
+    if (NULL != self->mp3_buf) {
+        PyMem_Free(self->mp3_buf);
+        self->mp3_buf = NULL;
+    }
+
     self->ob_type->tp_free((PyObject*)self);
 }
+
+static char mp3enc_init__doc__[] =
+"Initializates the internal state of LAME.\n"
+"No paramteres. First you have to use the set_*() functions.\n"
+"C function: lame_init_params()\n"
+;
+
+static PyObject *
+mp3enc_init(Encoder *self, PyObject *args)
+{
+    int nsamples;
+
+    /* Allocate an internal buffer for the MP3 output. */
+    nsamples = lame_get_num_samples(self->gfp);
+    self->mp3_buf = PyMem_Malloc(1.25 * nsamples + 7200);
+
+    if (NULL == self->mp3_buf) {
+        PyErr_SetString((PyObject *)self, "No MP3 buffer." );
+        return NULL;
+    }
+
+    if (0 > lame_init_params( self->gfp )) {
+        PyErr_SetString((PyObject *)self, "Can't initialize LAME parameters.");
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 
 
 static char mp3enc_encode_interleaved__doc__[] =
@@ -212,29 +247,6 @@ mp3enc_flush_buffers(Encoder *self, PyObject *args)
     return Py_BuildValue( "s#", self->mp3_buf, mp3_buf_fill_size );
 }
 
-
-static char mp3enc_init_parameters__doc__[] =
-"Initializates the internal state of LAME.\n"
-"No paramteres. First you have to use the set_*() functions.\n"
-"C function: lame_init_params()\n"
-;
-
-static PyObject *
-mp3enc_init_parameters(Encoder *self, PyObject *args)
-{
-    if ( NULL == self->mp3_buf ) {
-	PyErr_SetString( (PyObject *)self, "no mp3 buffer" );
-	return NULL;
-    }
-
-    if ( 0 > lame_init_params( self->gfp ) ) {
-        PyErr_SetString( (PyObject *)self, "Can't initialize LAME parameters." );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
 
 
 static char mp3enc_set_num_samples__doc__[] =
@@ -1954,8 +1966,8 @@ static struct PyMethodDef mp3enc_methods[] = {
         METH_VARARGS, mp3enc_encode_interleaved__doc__               },
     {"flush_buffers", (PyCFunction)mp3enc_flush_buffers,
         METH_NOARGS, mp3enc_flush_buffers__doc__},
-    {"init_parameters", (PyCFunction)mp3enc_init_parameters,
-        METH_NOARGS, mp3enc_init_parameters__doc__},
+    {"init", (PyCFunction)mp3enc_init,
+        METH_NOARGS, mp3enc_init__doc__},
     {"set_num_samples", (PyCFunction)mp3enc_set_num_samples,
 	METH_VARARGS, mp3enc_set_num_samples__doc__                  },
     {"set_in_samplerate", (PyCFunction)mp3enc_set_in_samplerate,
