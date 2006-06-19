@@ -32,92 +32,59 @@
 # quick hack to test some aspects of pylame, a cleanup is needed
 
 # TODO:
-#  * merge use_gui and have_gtk
 #  * split into multiple files
 #  * cleanup
 
-import os, sys, getopt
-import wave, aifc, sunau
+import os
+import sys
+from optparse import OptionParser
+
+import wave
+import aifc
+import sunau
+
 import lame
 
-def usage():
-    print 'Usage: slame [-b <bitrate>] [-achqv] <infile> [<outfile>]' + os.linesep + \
-          '       -a: produce an ABR MP3'                    + os.linesep + \
-	  '       -b: use bitrate of <bitrate> kbps'         + os.linesep + \
-          '       -c: produce a CBR MP3'                     + os.linesep + \
-          '       -h: print this help'                       + os.linesep + \
-          '       -q: be quiet (no output except on errors)' + os.linesep + \
-          '       -v: produce a more verbose output'         + os.linesep + \
-	  '   * per default a VBR MP3 is created'            + os.linesep + \
-	  '   * if no <outfile> is given, slame tries to guess a reasonable one'
 
+def parse_args():
+    parser = OptionParser(usage='%prog [options] INFILE [OUTFILE]')
+    parser.add_option('-b', '--bitrate', dest='bitrate', type='int',
+                      default=lame.PRESET_STANDARD,
+                      help='Use a bitrate of <bitrate> kbps')
+    parser.add_option('-a', '--abr', dest='abr', action='store_true',
+                      help='Produce an ABR MP3')
+    parser.add_option('-c', '--cbr', dest='cbr', action='store_true',
+                      help='Produce a constant bitrate MP3')
+    parser.add_option('-q', '--quiet', dest='quiet', action='store_true',
+                      help='Be quiet (no output except on errors)')
+    parser.add_option('-v', '--verbose', dest='verbose', action='count',
+                      default=0,
+                      help='Produce a more verbose output')
+    
+    (opt, args) = parser.parse_args()
 
-def set_parameters(mp3, nchannels, samplerate, nframes, bitrate, vbr):
-    mp3.num_channels = nchannels
-    mp3.set_in_samplerate(samplerate)
-    mp3.set_num_samples(long(nframes))
+    # Process options
+    if opt.abr and opt.cbr:
+        parser.error("You can only specify one of ABR or CBR.")
+    print opt
+    vbr = lame.VBR_MODE_DEFAULT
+    if opt.abr:
+        vbr = lame.VBR_MODE_ABR
+    if opt.cbr:
+        vbr = lame.VBR_MODE_OFF
 
-    mp3.set_vbr(vbr)
-    if 8 <= bitrate <= 320:
-	mp3.set_bitrate(bitrate)
-    mp3.set_preset(bitrate)
-    return mp3
-
-
-def get_defaults():
-    # defaults:
-    bitrate = lame.PRESET_STANDARD
-    verbose = 0
-    quiet   = 0
-    vbr     = lame.VBR_MODE_DEFAULT
-
-    return (bitrate, verbose, quiet, vbr)
-
-
-def process_options_or_exit(arglist):
-    try:
-        optlist, args = getopt.getopt(arglist, 'ab:cghqv')
-    except getopt.GetoptError:
-        usage()
-        sys.exit(1)
-
-    bitrate, verbose, quiet, vbr = get_defaults()
-
-    # process options
-    for opt, val in optlist:
-        if opt == '-a':
-            vbr     = lame.VBR_MODE_ABR
-	    continue
-	if opt == '-b':
-	    bitrate = int(val)
-	    continue
-	if opt == '-c':
-	    vbr     = lame.VBR_MODE_OFF
-	    continue
-	if opt == '-h':
-	    usage()
-	    sys.exit(0)
-	    continue            # can't happen, but makes the editor happy
-        if opt == '-q':
-            quiet = 1
-            continue
-        if opt == '-v':
-            verbose = 1
-            continue
-
-    # check number of remaining arguments
+    arg_count = len(args)
     if (1 > len(args)) or (2 < len(args)):
-        usage()
-        sys.exit(1)
-
-    in_file  = os.path.normcase(os.path.normpath(os.path.expanduser(args[0])))
+        parser.error("You must specify at least an input file.")
+  
+    in_file = args[0]
     if 2 == len(args):
-	mp3_name = os.path.normcase(os.path.normpath(os.path.expanduser(args[1])))
+	mp3_name = args[1]
     else:
 	root, extension = os.path.splitext(in_file)
 	mp3_name = root + '.mp3'
     
-    return args, bitrate, verbose, quiet, vbr, in_file, mp3_name
+    return opt.bitrate, opt.verbose, opt.quiet, vbr, in_file, mp3_name
 
 
 def open_soundfile_or_exit(file):
@@ -141,12 +108,12 @@ def open_soundfile_or_exit(file):
 
 def is_readable_or_exit(file):
     if 1 != os.access(file, os.R_OK):
-        print 'File "' + file + '" not readable.'
+        print 'Input file "%s" not readable.' % (file,)
         sys.exit(1)
 
 
 def get_average(bitrate_hist, frames_processed):
-    average = float(0)
+    average = 0.0
     for i in range(0, 14):
 	if 0 != bitrate_hist[i]["value"]:
 	    average += bitrate_hist[i]["bitrate"] \
@@ -157,8 +124,6 @@ def get_average(bitrate_hist, frames_processed):
 
 
 def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate):
-    global actual_bitrate, actual_progress, last_bitrate, last_progress, \
-           data_lock, have_gtk, data_event, event_timeout
     
     bitrate_hist = mp3.get_bitrate_histogram()
     stmode_hist  = mp3.get_bitrate_stereo_mode_histogram()
@@ -171,24 +136,23 @@ def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate):
     else:
 	average_rate = bitrate
 	
-    progress = frames_processed/float(frames_total)
+    progress = frames_processed / float(frames_total)
 	
-    if 1 == verbose:
+    if 1 <= verbose:
         print ''
     
     if lame.VBR_MODE_DEFAULT == vbr:
-        print '\r%9d of %9d bytes (%04.1f%%, %.1f kbps)' %      (
-              processed_bytes, raw_size,
-    	  float(processed_bytes)/raw_size*100,
-    	  average_rate ),
+        print '\r%9d of %9d bytes (%04.1f%%, %.1f kbps)' % \
+              (processed_bytes, raw_size,
+               float(processed_bytes)/raw_size*100,
+               average_rate ),
     else:
         # ABR & CBR
-        print '\r%9d of %9d bytes' %    (
-              processed_bytes, raw_size ),
+        print '\r%9d of %9d bytes' % (processed_bytes, raw_size),
     
     sys.stdout.flush()
     	  
-    if 1 == verbose:
+    if 1 <= verbose:
         print ''
         for i in range(0, 14):
             print '%3d: %4d (%5.1f%%)  LR: %4d LR-I: %4d MS: %4d MS-I: %4d' % \
@@ -204,12 +168,8 @@ def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate):
 
 
 def main():
-    global actual_bitrate, actual_progress, last_bitrate, last_progress, \
-           data_lock, abort, have_gtk, data_event
-    
     # argument parsing
-    args, bitrate, verbose, quiet, vbr, in_file, mp3_name = \
-        process_options_or_exit(sys.argv[1:])
+    bitrate, verbose, quiet, vbr, in_file, mp3_name = parse_args()
 
     is_readable_or_exit(in_file)
 
@@ -221,7 +181,7 @@ def main():
 
     raw_size = nchannels * sampwidth * nframes
 
-    if 1 == verbose & 0 == quiet:
+    if 1 <= verbose:
         print "File      :", in_file
         print "nchannels :", nchannels
         print "sampwidth :", sampwidth
@@ -240,10 +200,19 @@ def main():
         sys.exit(1)
 
     # mp3file
+    mp3_file = file(mp3_name, "wb+")
+
+    # Prep the encoder object
     mp3 = lame.encoder()
-    mp3_file = open(mp3_name, "wb+")
-    
-    mp3 = set_parameters(mp3, nchannels, samplerate, nframes, bitrate, vbr)
+    mp3.num_channels = nchannels
+    mp3.set_in_samplerate(samplerate)
+    mp3.set_num_samples(long(nframes))
+
+    mp3.set_vbr(vbr)
+    if 8 <= bitrate <= 320:
+	mp3.set_bitrate(bitrate)
+    mp3.set_preset(bitrate)
+
     mp3.init()
 
     abort = 0
@@ -268,7 +237,7 @@ def main():
 
         processed_bytes += len(frames)
 
-	if 0 == quiet:
+	if not quiet:
 	    print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate)
 
     data = mp3.flush_buffers()
