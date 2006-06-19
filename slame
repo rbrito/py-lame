@@ -66,7 +66,7 @@ def parse_args():
     # Process options
     if opt.abr and opt.cbr:
         parser.error("You can only specify one of ABR or CBR.")
-    print opt
+
     vbr = lame.VBR_MODE_DEFAULT
     if opt.abr:
         vbr = lame.VBR_MODE_ABR
@@ -245,7 +245,7 @@ def main():
 
     mp3.write_tags(mp3_file)
 
-    if 0 == quiet:
+    if not quiet:
 	print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate)
 
     mp3_file.close()
