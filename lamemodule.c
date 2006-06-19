@@ -42,7 +42,6 @@ static void quiet_lib_printf( const char *format, va_list ap )
 typedef struct {
     PyObject_HEAD
     /* XXXX Add your own stuff here */
-    PyObject*           mp3enc_attr;    /* Attributes dictionary */
     lame_global_flags*  gfp;
     unsigned char*      mp3_buf;
     int                 num_samples;
@@ -2094,23 +2093,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_write_tags__doc__                        },
     {NULL,    NULL}  /* Sentinel */
 };
-
-
-static PyObject *
-mp3enc_getattr(self, name)
-        Encoder *self;
-        char *name;
-{
-        /* XXXX Add your own getattr code here */
-    if (self->mp3enc_attr != NULL) {
-        PyObject *v = PyDict_GetItemString(self->mp3enc_attr, name);
-        if (v != NULL) {
-            Py_INCREF(v);
-            return v;
-        }
-    }
-    return Py_FindMethod(mp3enc_methods, (PyObject *)self, name);
-}
 
 
 static PyObject *
