@@ -31,6 +31,13 @@
 #include <lame/lame.h>
 #include <stdio.h>
 
+/* Macro to ease creation of attribute getter wrapper functions. */
+#define GETATTR(attrname, format) \
+    static PyObject *\
+    mp3enc_get_##attrname(Encoder *self, void *closure) { \
+        return Py_BuildValue(#format, lame_get_##attrname(self->gfp)); \
+    }
+
 static void quiet_lib_printf( const char *format, va_list ap )
 {
     return;
@@ -2090,13 +2097,11 @@ static struct PyMethodDef mp3enc_methods[] = {
     {NULL,    NULL}  /* Sentinel */
 };
 
-
-static PyObject *
-mp3enc_get_num_channels(Encoder *self, void *closure)
-{
-    return Py_BuildValue("i", lame_get_num_channels(self->gfp));
-}
-
+GETATTR(in_samplerate, i)
+GETATTR(num_channels, i)
+GETATTR(scale, f)
+GETATTR(scale_left, f)
+GETATTR(scale_right, f)
 
 static int
 mp3enc_set_num_channels(Encoder *self, PyObject *value, void *closure)
@@ -2119,11 +2124,22 @@ mp3enc_set_num_channels(Encoder *self, PyObject *value, void *closure)
     return 0;
 }
 
-
 static PyGetSetDef mp3enc_getseters[] = {
+    {"in_samplerate",
+        (getter)mp3enc_get_in_samplerate, NULL,
+    "Input sample rate in Hz.", NULL},
     {"num_channels",
         (getter)mp3enc_get_num_channels, (setter)mp3enc_set_num_channels,
-        "Number of channels.", NULL},
+    "Number of channels in the input stream.", NULL},
+    {"scale",
+        (getter)mp3enc_get_scale, NULL,
+    "Scale the input by this amount before encoding.", NULL},
+    {"scale_left",
+        (getter)mp3enc_get_scale_left, NULL,
+    "Scale the input by this amount before encoding.", NULL},
+    {"scale_right",
+        (getter)mp3enc_get_scale_right, NULL,
+    "Scale the input by this amount before encoding.", NULL},        
     {NULL} /* Sentinel */
 };
 
