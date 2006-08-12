@@ -31,12 +31,6 @@
 #include <lame/lame.h>
 #include <stdio.h>
 
-/* Macro to ease creation of attribute getter wrapper functions. */
-#define GETATTR(attrname, format) \
-    static PyObject *\
-    mp3enc_get_##attrname(Encoder *self, void *closure) { \
-        return Py_BuildValue(#format, lame_get_##attrname(self->gfp)); \
-    }
 
 static void quiet_lib_printf( const char *format, va_list ap )
 {
@@ -280,115 +274,6 @@ mp3enc_set_num_samples(self, args)
     Py_INCREF(Py_None);
     return Py_None;
 }
-
-
-static char mp3enc_set_in_samplerate__doc__[] =
-"Set samplerate of infile (in Hz).\n"
-"Default: 44100\n"
-"Parameter: int\n"
-"C function: lame_set_in_samplerate()\n"
-;
-
-static PyObject *
-mp3enc_set_in_samplerate(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int in_samplerate;
-
-    if ( !PyArg_ParseTuple( args, "i", &in_samplerate ) )
-        return NULL;
-
-    if ( 0 > lame_set_in_samplerate( self->gfp, in_samplerate ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set samplerate for infile" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_scale__doc__[] =
-"Scale the input by this amount before encoding.\n"
-"Default: 0 (disabled)\n"
-"Parameter: float\n"
-"C function: lame_set_scale()\n"
-;
-
-static PyObject *
-mp3enc_set_scale(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    float scale;
-
-    if ( !PyArg_ParseTuple( args, "f", &scale ) )
-        return NULL;
-
-    if ( 0 > lame_set_scale( self->gfp, scale ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set scaling" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_scale_left__doc__[] =
-"Scale channel 0 (left) of the input by this amount before encoding.\n"
-"Default: 0 (disabled)\n"
-"Parameter: float\n"
-"C function: lame_set_scale_left()\n"
-;
-
-static PyObject *
-mp3enc_set_scale_left(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    float scale_left;
-
-    if ( !PyArg_ParseTuple( args, "f", &scale_left ) )
-        return NULL;
-
-    if ( 0 > lame_set_scale_left( self->gfp, scale_left ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set scaling for channel 0 (left)" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_scale_right__doc__[] =
-"Scale channel 1 (right) of the input by this amount before encoding.\n"
-"Default: 0 (disabled)\n"
-"Parameter: float\n"
-"C function: lame_set_scale_right()\n"
-;
-
-static PyObject *
-mp3enc_set_scale_right(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    float scale_right;
-
-    if ( !PyArg_ParseTuple( args, "f", &scale_right ) )
-        return NULL;
-
-    if ( 0 > lame_set_scale_right( self->gfp, scale_right ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set scaling of channel 1 (right)" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
 
 static char mp3enc_set_out_samplerate__doc__[] =
 "Set output samplerate (in Hz).\n"
@@ -1972,14 +1857,6 @@ static struct PyMethodDef mp3enc_methods[] = {
         METH_NOARGS, mp3enc_init__doc__},
     {"set_num_samples", (PyCFunction)mp3enc_set_num_samples,
 	METH_VARARGS, mp3enc_set_num_samples__doc__                  },
-    {"set_in_samplerate", (PyCFunction)mp3enc_set_in_samplerate,
-	METH_VARARGS, mp3enc_set_in_samplerate__doc__                },
-    {"set_scale", (PyCFunction)mp3enc_set_scale,
-	METH_VARARGS, mp3enc_set_scale__doc__                        },
-    {"set_scale_left", (PyCFunction)mp3enc_set_scale_left,
-	METH_VARARGS, mp3enc_set_scale_left__doc__                   },
-    {"set_scale_right", (PyCFunction)mp3enc_set_scale_right,
-	METH_VARARGS, mp3enc_set_scale_right__doc__                  },
     {"set_out_samplerate", (PyCFunction)mp3enc_set_out_samplerate,
 	METH_VARARGS, mp3enc_set_out_samplerate__doc__               },
     {"set_analysis", (PyCFunction)mp3enc_set_analysis,
@@ -2097,49 +1974,104 @@ static struct PyMethodDef mp3enc_methods[] = {
     {NULL,    NULL}  /* Sentinel */
 };
 
-GETATTR(in_samplerate, i)
-GETATTR(num_channels, i)
-GETATTR(scale, f)
-GETATTR(scale_left, f)
-GETATTR(scale_right, f)
+/* "Generic" setters for int and float values of the lame encoder that take care
+of the argument verification needed when dealing with attributes. */
 
 static int
-mp3enc_set_num_channels(Encoder *self, PyObject *value, void *closure)
+generic_set_int(Encoder *self, PyObject *value, const char *attr,
+                int (fptr)(lame_global_flags*, int))
 {
     if (value == NULL) {
-        PyErr_SetString(PyExc_TypeError, "Cannot delete the num_channels attribute");
+        PyErr_Format(PyExc_TypeError, "Cannot delete the '%s' attribute.", attr);
         return -1;
     }
 
     if (!PyInt_Check(value)) {
-        PyErr_SetString(PyExc_TypeError, "num_channels must be an integer");
+        PyErr_Format(PyExc_TypeError, "Attribute '%s' must be an integer.", attr);
         return -1;
     }
 
-    if (0 != lame_set_num_channels(self->gfp, PyInt_AS_LONG(value))) {
-        PyErr_SetString(PyExc_ValueError, "num_channels must be 1 or 2.");
+    if (0 != (fptr)(self->gfp, PyInt_AS_LONG(value))) {
+        PyErr_Format(PyExc_ValueError, "Set '%s' failed (out of range?).", attr);
         return -1;
     }
 
     return 0;
 }
 
+static int
+generic_set_float(Encoder *self, PyObject *value, const char *attr,
+                int (fptr)(lame_global_flags*, float))
+{
+    if (value == NULL) {
+        PyErr_Format(PyExc_TypeError, "Cannot delete the '%s' attribute.", attr);
+        return -1;
+    }
+
+    if (!PyFloat_Check(value)) {
+        PyErr_Format(PyExc_TypeError, "Attribute '%s' must be a float.", attr);
+        return -1;
+    }
+
+    if (0 != (fptr)(self->gfp, PyFloat_AS_DOUBLE(value))) {
+        PyErr_Format(PyExc_ValueError, "Set '%s' failed (out of range?).", attr);
+        return -1;
+    }
+
+    return 0;
+}
+
+
+/* Macros to ease creation of attribute getter/setter wrapper functions.  I
+   Know this is a bit much, but you can use "gcc -E" to see what it generates,
+   and it would be truly tedious without. */
+#define GETATTR(attrname, format) \
+    static PyObject *\
+    mp3enc_get_##attrname(Encoder *self, void *closure) { \
+        return Py_BuildValue(#format, lame_get_##attrname(self->gfp)); \
+    }
+    
+#define SETATTR_INT(attrname, lamefunc) \
+    static int \
+    mp3enc_set_##attrname(Encoder *self, PyObject *value, void *closure) { \
+        return generic_set_int(self, value, #attrname, lamefunc); \
+    }
+
+#define SETATTR_FLOAT(attrname, lamefunc) \
+    static int \
+    mp3enc_set_##attrname(Encoder *self, PyObject *value, void *closure) { \
+        return generic_set_float(self, value, #attrname, lamefunc); \
+    }
+
+    
+GETATTR(in_samplerate, i)
+SETATTR_INT(in_samplerate, lame_set_in_samplerate)
+GETATTR(num_channels, i)
+SETATTR_INT(num_channels, lame_set_num_channels)
+
+GETATTR(scale, f)
+SETATTR_FLOAT(scale, lame_set_scale)
+GETATTR(scale_left, f)
+SETATTR_FLOAT(scale_left, lame_set_scale_left)
+GETATTR(scale_right, f)
+SETATTR_FLOAT(scale_right, lame_set_scale_right)
+
 static PyGetSetDef mp3enc_getseters[] = {
     {"in_samplerate",
-        (getter)mp3enc_get_in_samplerate, NULL,
+        (getter)mp3enc_get_in_samplerate, (setter)mp3enc_set_in_samplerate,
     "Input sample rate in Hz.", NULL},
     {"num_channels",
         (getter)mp3enc_get_num_channels, (setter)mp3enc_set_num_channels,
     "Number of channels in the input stream.", NULL},
     {"scale",
-        (getter)mp3enc_get_scale, NULL,
+        (getter)mp3enc_get_scale, (setter)mp3enc_set_scale,
     "Scale the input by this amount before encoding.", NULL},
     {"scale_left",
-        (getter)mp3enc_get_scale_left, NULL,
-    "Scale the input by this amount before encoding.", NULL},
+        (getter)mp3enc_get_scale_left, (setter)mp3enc_set_scale_left,
+    "Scale channel 0 (left) of the input by this amount before encoding.", NULL},
     {"scale_right",
-        (getter)mp3enc_get_scale_right, NULL,
-    "Scale the input by this amount before encoding.", NULL},        
+        (getter)mp3enc_get_scale_right, (setter)mp3enc_set_scale_right,
+    "Scale channel 1 (right) of the input by this amount before encoding.", NULL},        
     {NULL} /* Sentinel */
 };
 
