@@ -2173,7 +2173,7 @@ static char lame_module_documentation[] =
 ;
 
 PyMODINIT_FUNC
-initlame()
+init_lame()
 {
     PyObject *m;
 
@@ -2181,7 +2181,7 @@ initlame()
         return;
 
     /* Create the module and add the functions */
-    m = Py_InitModule3("lame", mp3lame_methods, lame_module_documentation);
+    m = Py_InitModule3("_lame", mp3lame_methods, lame_module_documentation);
     if (NULL == m)
         return;
 
