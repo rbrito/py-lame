@@ -410,33 +410,6 @@ mp3enc_set_mode(self, args)
 }
 
 
-static char mp3enc_set_mode_automs__doc__[] =
-"Use a M/S mode with a switching threshold based on compression ratio.\n"
-"Default: 0 (disabled)\n"
-"Parameter: int\n"
-"C function: lame_set_mode_automs()\n"
-;
-
-static PyObject *
-mp3enc_set_mode_automs(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int mode_automs;
-
-    if ( !PyArg_ParseTuple( args, "i", &mode_automs ) )
-        return NULL;
-
-    if ( 0 > lame_set_mode_automs( self->gfp, mode_automs ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set mode_automs" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_set_force_ms__doc__[] =
 "Force M/S for all frames (purpose: for testing only).\n"
 "Default: 0 (disabled)\n"
@@ -671,33 +644,6 @@ mp3enc_set_error_protection(self, args)
 
     if ( 0 > lame_set_error_protection( self->gfp, error_protection ) ) {
         PyErr_SetString( (PyObject *)self, "can't set error protection" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_padding_type__doc__[] =
-"Set padding type.\n"
-"Default: lame.PAD_ADJUST\n"
-"Paramter: lame.PAD_NO, lame.PAD_ALL, lame.PAD_ADJUST\n"
-"C function: lame_set_padding_type()\n"
-;
-
-static PyObject *
-mp3enc_set_padding_type(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int padding_type;
-
-    if ( !PyArg_ParseTuple( args, "i", &padding_type ) )
-        return NULL;
-
-    if ( 0 > lame_set_padding_type( self->gfp, padding_type ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set padding type" );
         return NULL;
     }
 
@@ -1383,33 +1329,6 @@ mp3enc_set_athaa_sensitivity(self, args)
 }
 
 
-static char mp3enc_set_predictability_limit__doc__[] =
-"Predictability limit for the ISO tonality formula.\n"
-"Default: XXX\n"
-"Parameter: int\n"
-"C function: lame_set_cwlimit()\n"
-;
-
-static PyObject *
-mp3enc_set_predictability_limit(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int predictability_limit;
-
-    if ( !PyArg_ParseTuple( args, "i", &predictability_limit ) )
-        return NULL;
-
-    if ( 0 > lame_set_cwlimit( self->gfp, predictability_limit ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set predictability limit for ISO tonality formula" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_set_allow_blocktype_difference__doc__[] =
 "Allow blocktypes to differ between channels.\n"
 "Default: 0 (disabled) for JOINT_STEREO, 1 (enabled) for STEREO\n"
@@ -1483,33 +1402,6 @@ mp3enc_set_inter_channel_ratio(self, args)
 
     if ( 0 > lame_set_interChRatio( self->gfp, inter_channel_ratio ) ) {
         PyErr_SetString( (PyObject *)self, "can't change inter channel ratio" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_substep__doc__[] =
-"Set substep shaping method.\n"
-"Default: XXX\n"
-"Parameter: int  XXX should be lame.YYY\n"
-"C function: lame_set_substep()\n"
-;
-
-static PyObject *
-mp3enc_set_substep(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int substep;
-
-    if ( !PyArg_ParseTuple( args, "i", &substep ) )
-        return NULL;
-
-    if ( 0 > lame_set_substep( self->gfp, substep ) ) {
-        PyErr_SetString( (PyObject *)self, "can't change substep shaping method" );
         return NULL;
     }
 
@@ -1796,29 +1688,6 @@ mp3enc_set_exp_msfix(self, args)
 }
 
 
-static char mp3enc_set_exp_preset_expopts__doc__[] =
-"Undocumented, don't use.\n"
-"Parameter: int\n"
-"C function: lame_set_preset_expopts()\n"
-;
-
-static PyObject *
-mp3enc_set_exp_preset_expopts(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    double preset_expopts;
-
-    if ( !PyArg_ParseTuple( args, "i", &preset_expopts ) )
-        return NULL;
-
-    lame_set_preset_expopts( self->gfp, preset_expopts );
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_write_tags__doc__[] =
 "Write ID3v1 TAG's.\n"
 "Parameter: file\n"
@@ -1867,8 +1736,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_quality__doc__                       },
     {"set_mode", (PyCFunction)mp3enc_set_mode,
 	METH_VARARGS, mp3enc_set_mode__doc__                          },
-    {"set_mode_automs", (PyCFunction)mp3enc_set_mode_automs,
-	METH_VARARGS, mp3enc_set_mode_automs__doc__                   },
     {"set_force_ms", (PyCFunction)mp3enc_set_force_ms,
 	METH_VARARGS, mp3enc_set_force_ms__doc__                      },
     {"set_free_format", (PyCFunction)mp3enc_set_free_format,
@@ -1887,8 +1754,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_original__doc__                      },
     {"set_error_protection", (PyCFunction)mp3enc_set_error_protection,
 	METH_VARARGS, mp3enc_set_error_protection__doc__              },
-    {"set_padding_type", (PyCFunction)mp3enc_set_padding_type,
-	METH_VARARGS, mp3enc_set_padding_type__doc__                  },
     {"set_extension", (PyCFunction)mp3enc_set_extension,
 	METH_VARARGS, mp3enc_set_extension__doc__                     },
     {"set_strict_iso", (PyCFunction)mp3enc_set_strict_iso,
@@ -1939,16 +1804,12 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_athaa_loudness_approximation__doc__  },
     {"set_athaa_sensitivity", (PyCFunction)mp3enc_set_athaa_sensitivity,
 	METH_VARARGS, mp3enc_set_athaa_sensitivity__doc__             },
-    {"set_predictability_limit", (PyCFunction)mp3enc_set_predictability_limit,
-	METH_VARARGS, mp3enc_set_predictability_limit__doc__          },
     {"set_allow_blocktype_difference", (PyCFunction)mp3enc_set_allow_blocktype_difference,
 	METH_VARARGS, mp3enc_set_allow_blocktype_difference__doc__    },
     {"set_use_temporal_masking", (PyCFunction)mp3enc_set_use_temporal_masking,
 	METH_VARARGS, mp3enc_set_use_temporal_masking__doc__          },
     {"set_inter_channel_ratio", (PyCFunction)mp3enc_set_inter_channel_ratio,
 	METH_VARARGS, mp3enc_set_inter_channel_ratio__doc__           },
-    {"set_substep", (PyCFunction)mp3enc_set_substep,
-	METH_VARARGS, mp3enc_set_substep__doc__                       },
     {"set_no_short_blocks", (PyCFunction)mp3enc_set_no_short_blocks,
 	METH_VARARGS, mp3enc_set_no_short_blocks__doc__               },
     {"set_force_short_blocks", (PyCFunction)mp3enc_set_force_short_blocks,
@@ -1967,8 +1828,6 @@ static struct PyMethodDef mp3enc_methods[] = {
         METH_NOARGS, mp3enc_get_stereo_mode_histogram__doc__},
     {"set_exp_msfix", (PyCFunction)mp3enc_set_exp_msfix,
 	METH_VARARGS, mp3enc_set_exp_msfix__doc__            },
-    {"set_exp_preset_expopts", (PyCFunction)mp3enc_set_exp_preset_expopts,
-	METH_VARARGS, mp3enc_set_exp_preset_expopts__doc__            },
     {"write_tags", (PyCFunction)mp3enc_write_tags,
 	METH_VARARGS, mp3enc_write_tags__doc__                        },
     {NULL,    NULL}  /* Sentinel */
