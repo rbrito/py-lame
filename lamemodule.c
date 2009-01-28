@@ -32,7 +32,8 @@
 #include <stdio.h>
 
 
-static void quiet_lib_printf( const char *format, va_list ap )
+static void
+quiet_lib_printf( const char *format, va_list ap )
 {
     return;
 }
@@ -64,7 +65,7 @@ mp3enc_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             Py_DECREF(self);
             return NULL;
         }
-        
+
         /* Silence the chatty lame */
         lame_set_errorf(self->gfp, quiet_lib_printf);
         lame_set_debugf(self->gfp, quiet_lib_printf);
@@ -90,6 +91,7 @@ mp3enc_dealloc(Encoder* self)
 
     self->ob_type->tp_free((PyObject*)self);
 }
+
 
 static char mp3enc_init__doc__[] =
 "Initializates the internal state of LAME.\n"
@@ -121,16 +123,13 @@ mp3enc_init(Encoder *self, PyObject *args)
 }
 
 
-
 static char mp3enc_encode_interleaved__doc__[] =
 "Encode interleaved audio data (2 channels, 16 bit per sample).\n"
 "Parameter: audiodata\n"
 "C function: lame_encode_buffer_interleaved()\n"
 ;
 static PyObject *
-mp3enc_encode_interleaved(self, args)
-        Encoder *self;
-        PyObject *args;
+mp3enc_encode_interleaved(Encoder *self, PyObject *args)
 {
     int16_t* pcm;
     int      num_samples;
@@ -145,13 +144,13 @@ mp3enc_encode_interleaved(self, args)
     if ( self->num_samples < num_samples ) {
 	unsigned char *new_buf;
 
-	new_buf = realloc( self->mp3_buf, 1.25*num_samples + 7200 );
+	new_buf = PyMem_realloc(self->mp3_buf, 1.25*num_samples + 7200);
 	if ( NULL == new_buf ) {
 	    PyErr_NoMemory();
 	    return NULL;
 	}
 
-	self->mp3_buf     = new_buf;
+	self->mp3_buf = new_buf;
 	self->num_samples = num_samples;
     }
 
@@ -1833,8 +1832,9 @@ static struct PyMethodDef mp3enc_methods[] = {
     {NULL,    NULL}  /* Sentinel */
 };
 
-/* "Generic" setters for int and float values of the lame encoder that take care
-of the argument verification needed when dealing with attributes. */
+/* "Generic" setters for int and float values of the lame encoder that
+take care of the argument verification needed when dealing with
+attributes. */
 
 static int
 generic_set_int(Encoder *self, PyObject *value, const char *attr,
@@ -1881,15 +1881,16 @@ generic_set_float(Encoder *self, PyObject *value, const char *attr,
 }
 
 
-/* Macros to ease creation of attribute getter/setter wrapper functions.  I
-   Know this is a bit much, but you can use "gcc -E" to see what it generates,
-   and it would be truly tedious without. */
+/* Macros to ease creation of attribute getter/setter wrapper
+ * functions.  I Know this is a bit much, but you can use "gcc -E" to
+ * see what it generates, and it would be truly tedious without.
+ */
 #define GETATTR(attrname, format) \
     static PyObject *\
     mp3enc_get_##attrname(Encoder *self, void *closure) { \
         return Py_BuildValue(#format, lame_get_##attrname(self->gfp)); \
     }
-    
+
 #define SETATTR_INT(attrname, lamefunc) \
     static int \
     mp3enc_set_##attrname(Encoder *self, PyObject *value, void *closure) { \
@@ -1902,7 +1903,7 @@ generic_set_float(Encoder *self, PyObject *value, const char *attr,
         return generic_set_float(self, value, #attrname, lamefunc); \
     }
 
-    
+
 GETATTR(in_samplerate, i)
 SETATTR_INT(in_samplerate, lame_set_in_samplerate)
 GETATTR(num_channels, i)
@@ -1930,7 +1931,7 @@ static PyGetSetDef mp3enc_getseters[] = {
     "Scale channel 0 (left) of the input by this amount before encoding.", NULL},
     {"scale_right",
         (getter)mp3enc_get_scale_right, (setter)mp3enc_set_scale_right,
-    "Scale channel 1 (right) of the input by this amount before encoding.", NULL},        
+    "Scale channel 1 (right) of the input by this amount before encoding.", NULL},
     {NULL} /* Sentinel */
 };
 
@@ -1981,14 +1982,6 @@ static PyTypeObject EncoderType = {
 
 /* BEGIN lame module functions */
 
-static char mp3lame_url__doc__[] = "Deprecated: Use lame.LAME_URL";
-
-static PyObject *
-mp3lame_url(Encoder *self, PyObject *args)
-{
-    return Py_BuildValue("s", get_lame_url());
-}
-
 
 static char mp3lame_version__doc__[] =
 "Returns the version of LAME in a tuple: (major, minor, alpha, beta,\n"
@@ -2002,16 +1995,16 @@ mp3lame_version(PyObject *self, PyObject *args)
 
     get_lame_version_numerical( &version );
 
-    return Py_BuildValue( "iiiiiiiis",
-       version.major,
-       version.minor,
-       version.alpha,
-       version.beta,
-       version.psy_major,
-       version.psy_minor,
-       version.psy_alpha,
-       version.psy_beta,
-       version.features );
+    return Py_BuildValue("iiiiiiiis",
+                         version.major,
+                         version.minor,
+                         version.alpha,
+                         version.beta,
+                         version.psy_major,
+                         version.psy_minor,
+                         version.psy_alpha,
+                         version.psy_beta,
+                         version.features);
 }
 
 
@@ -2020,7 +2013,6 @@ mp3lame_version(PyObject *self, PyObject *args)
 /* List of methods defined in the module */
 
 static struct PyMethodDef mp3lame_methods[] = {
-    {"url", (PyCFunction)mp3lame_url, METH_NOARGS, mp3lame_url__doc__},
     {"version", (PyCFunction)mp3lame_version, METH_NOARGS, mp3lame_version__doc__},
     {NULL}  /* Sentinel */
 };
