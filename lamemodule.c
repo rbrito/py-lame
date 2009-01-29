@@ -367,60 +367,6 @@ mp3enc_set_quality(self, args)
 }
 
 
-static char mp3enc_set_mode__doc__[] =
-"Set mode.\n"
-"Default: let LAME choose\n"
-"Parameter: lame.STEREO, lame.JOINT_STEREO, lame.DUAL, lame.MONO\n"
-"C function: lame_set_mode\n"
-;
-
-static PyObject *
-mp3enc_set_mode(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int mode;
-
-    if ( !PyArg_ParseTuple( args, "i", &mode ) )
-        return NULL;
-
-    if ( 0 > lame_set_mode( self->gfp, mode ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set mode" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_force_ms__doc__[] =
-"Force M/S for all frames (purpose: for testing only).\n"
-"Default: 0 (disabled)\n"
-"Parameter: int\n"
-"C function: lame_set_force_ms()\n"
-;
-
-static PyObject *
-mp3enc_set_force_ms(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int force_ms;
-
-    if ( !PyArg_ParseTuple( args, "i", &force_ms ) )
-        return NULL;
-
-    if ( 0 > lame_set_force_ms( self->gfp, force_ms ) ) {
-        PyErr_SetString( (PyObject *)self, "can't force all frames to M/S" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_set_free_format__doc__[] =
 "Use free format.\n"
 "Default: 0 (disabled)\n"
@@ -1633,29 +1579,6 @@ mp3enc_get_stereo_mode_histogram(Encoder *self, PyObject *args)
 }
 
 
-static char mp3enc_set_exp_msfix__doc__[] =
-"Undocumented, don't use.\n"
-"Parameter: double\n"
-"C function: lame_set_msfix()\n"
-;
-
-static PyObject *
-mp3enc_set_exp_msfix(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    double msfix;
-
-    if ( !PyArg_ParseTuple( args, "d", &msfix ) )
-        return NULL;
-
-    lame_set_msfix( self->gfp, msfix );
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_write_tags__doc__[] =
 "Write ID3v1 TAG's.\n"
 "Parameter: file\n"
@@ -1684,12 +1607,12 @@ mp3enc_write_tags(Encoder *self, PyObject *args)
 
 
 static struct PyMethodDef mp3enc_methods[] = {
-    {"encode_interleaved", (PyCFunction)mp3enc_encode_interleaved,
-        METH_VARARGS, mp3enc_encode_interleaved__doc__               },
-    {"flush_buffers", (PyCFunction)mp3enc_flush_buffers,
-        METH_NOARGS, mp3enc_flush_buffers__doc__},
     {"init", (PyCFunction)mp3enc_init,
         METH_NOARGS, mp3enc_init__doc__},
+    {"encode_interleaved", (PyCFunction)mp3enc_encode_interleaved,
+        METH_VARARGS, mp3enc_encode_interleaved__doc__},
+    {"flush_buffers", (PyCFunction)mp3enc_flush_buffers,
+        METH_NOARGS, mp3enc_flush_buffers__doc__},
     {"set_num_samples", (PyCFunction)mp3enc_set_num_samples,
 	METH_VARARGS, mp3enc_set_num_samples__doc__                  },
     {"set_out_samplerate", (PyCFunction)mp3enc_set_out_samplerate,
@@ -1700,10 +1623,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_write_vbr_tag__doc__                },
     {"set_quality", (PyCFunction)mp3enc_set_quality,
 	METH_VARARGS, mp3enc_set_quality__doc__                       },
-    {"set_mode", (PyCFunction)mp3enc_set_mode,
-	METH_VARARGS, mp3enc_set_mode__doc__                          },
-    {"set_force_ms", (PyCFunction)mp3enc_set_force_ms,
-	METH_VARARGS, mp3enc_set_force_ms__doc__                      },
     {"set_free_format", (PyCFunction)mp3enc_set_free_format,
 	METH_VARARGS, mp3enc_set_free_format__doc__                   },
     {"set_bitrate", (PyCFunction)mp3enc_set_bitrate,
@@ -1790,8 +1709,6 @@ static struct PyMethodDef mp3enc_methods[] = {
         METH_NOARGS, mp3enc_get_bitrate_stereo_mode_histogram__doc__ },
     {"get_stereo_mode_histogram", (PyCFunction)mp3enc_get_stereo_mode_histogram,
         METH_NOARGS, mp3enc_get_stereo_mode_histogram__doc__},
-    {"set_exp_msfix", (PyCFunction)mp3enc_set_exp_msfix,
-	METH_VARARGS, mp3enc_set_exp_msfix__doc__            },
     {"write_tags", (PyCFunction)mp3enc_write_tags,
 	METH_VARARGS, mp3enc_write_tags__doc__                        },
     {NULL,    NULL}  /* Sentinel */
@@ -1825,7 +1742,7 @@ generic_set_int(Encoder *self, PyObject *value, const char *attr,
 
 static int
 generic_set_float(Encoder *self, PyObject *value, const char *attr,
-                int (fptr)(lame_global_flags*, float))
+                  int (fptr)(lame_global_flags*, float))
 {
     if (value == NULL) {
         PyErr_Format(PyExc_TypeError, "Cannot delete the '%s' attribute.", attr);
@@ -1849,6 +1766,9 @@ generic_set_float(Encoder *self, PyObject *value, const char *attr,
 /* Macros to ease creation of attribute getter/setter wrapper
  * functions.  I Know this is a bit much, but you can use "gcc -E" to
  * see what it generates, and it would be truly tedious without.
+ *
+ * This cleverness throws warnings when the set type is an enum, so we
+ * still write some of these out long-hand.
  */
 #define GETATTR(attrname, format) \
     static PyObject *\
@@ -1883,6 +1803,29 @@ SETATTR_FLOAT(scale_right, lame_set_scale_right)
 
 GETATTR(frameNum, i)
 
+GETATTR(mode, i)
+
+static int
+mp3enc_setattr_mode(Encoder *self, PyObject *value, void *closure)
+{
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete the 'mode' attribute.");
+        return -1;
+    }
+
+    if (!PyInt_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "Attribute 'mode' must be an integer.");
+        return -1;
+    }
+
+    if (0 != lame_set_mode(self->gfp, PyInt_AS_LONG(value))) {
+        PyErr_SetString(PyExc_ValueError, "Set 'mode' failed (out of range?).");
+        return -1;
+    }
+
+    return 0;
+}
+
 static PyGetSetDef mp3enc_getseters[] = {
     {"in_samplerate",
      (getter)mp3enc_get_in_samplerate, (setter)mp3enc_set_in_samplerate,
@@ -1899,6 +1842,9 @@ static PyGetSetDef mp3enc_getseters[] = {
     {"scale_right",
      (getter)mp3enc_get_scale_right, (setter)mp3enc_set_scale_right,
     "Scale channel 1 (right) of the input by this amount before encoding.", NULL},
+    {"mode",
+     (getter)mp3enc_get_mode, (setter)mp3enc_setattr_mode,
+     "MPEG mode using MPEG_MODE_* constants.", NULL},
     {"frame_num",
      (getter)mp3enc_get_frameNum, (setter)NULL,
      "Number of frames encoded (read-only).", NULL},
@@ -1963,7 +1909,7 @@ mp3lame_version(PyObject *self, PyObject *args)
 {
     lame_version_t version;
 
-    get_lame_version_numerical( &version );
+    get_lame_version_numerical(&version);
 
     return Py_BuildValue("iiiiiiiis",
                          version.major,
@@ -2064,6 +2010,9 @@ init_lame()
     PyModule_AddIntConstant(m, "ASM_MMX", MMX);
     PyModule_AddIntConstant(m, "ASM_3DNOW", AMD_3DNOW);
     PyModule_AddIntConstant(m, "ASM_SSE", SSE);
+
+    /* Defined at compile time. */
+    PyModule_AddStringConstant(m, "module_version", PYLAME_VERSION);
 
     /* Check for errors */
     if (PyErr_Occurred())

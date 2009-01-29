@@ -16,9 +16,13 @@ __all__ = ['ASM_3DNOW', 'ASM_MMX', 'ASM_SSE',
            'PRESET_VBR_6', 'PRESET_VBR_7', 'PRESET_VBR_8', 'PRESET_VBR_9',
            'VBR_MODE_ABR', 'VBR_MODE_DEFAULT', 'VBR_MODE_MTRH', 'VBR_MODE_OFF',
            'VBR_MODE_RH',
-           'Encoder', 'version',
+           'Encoder', 'module_version', 'version',
            # Local exports
            'url']
+
+# Pull from C compile time.
+__version__ = module_version
+
 
 def url():
     """Deprecated, use lame.LAME_URL instead."""

@@ -107,7 +107,7 @@ def open_soundfile_or_exit(file):
 
 
 def is_readable_or_exit(file):
-    if 1 != os.access(file, os.R_OK):
+    if not os.access(file, os.R_OK):
         print 'Input file "%s" not readable.' % (file,)
         sys.exit(1)
 
@@ -126,10 +126,10 @@ def get_average(bitrate_hist, frames_processed):
 def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate):
 
     bitrate_hist = mp3.get_bitrate_histogram()
-    stmode_hist  = mp3.get_bitrate_stereo_mode_histogram()
-    frames_processed = mp3.get_frame_num()
-    frames_total     = mp3.get_total_frames()
-    stmode_total     = mp3.get_stereo_mode_histogram()
+    stmode_hist = mp3.get_bitrate_stereo_mode_histogram()
+    frames_processed = mp3.frame_num
+    frames_total = mp3.get_total_frames()
+    stmode_total = mp3.get_stereo_mode_histogram()
 
     if lame.VBR_MODE_DEFAULT == vbr:
         average_rate = get_average(bitrate_hist, frames_processed)
@@ -205,7 +205,7 @@ def main():
     # Prep the encoder object
     mp3 = lame.Encoder()
     mp3.num_channels = nchannels
-    mp3.set_in_samplerate(samplerate)
+    mp3.in_samplerate = samplerate
     mp3.set_num_samples(long(nframes))
 
     mp3.set_vbr(vbr)
