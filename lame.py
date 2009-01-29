@@ -1,5 +1,7 @@
 """The python inteface to the LAME MP3 encoding library."""
 
+# $Id$
+
 from _lame import *
 
 __all__ = ['ASM_3DNOW', 'ASM_MMX', 'ASM_SSE',

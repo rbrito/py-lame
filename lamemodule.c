@@ -496,60 +496,6 @@ mp3enc_set_asm_optimizations(self, args)
 }
 
 
-static char mp3enc_set_copyright__doc__[] =
-"Set copyright bit.\n"
-"Default: 0 (disabled)\n"
-"Parameter: int\n"
-"C function: lame_set_copyright()\n"
-;
-
-static PyObject *
-mp3enc_set_copyright(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int copyright;
-
-    if ( !PyArg_ParseTuple( args, "i", &copyright ) )
-        return NULL;
-
-    if ( 0 > lame_set_copyright( self->gfp, copyright ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set copyright bit" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
-static char mp3enc_set_original__doc__[] =
-"Set original bit.\n"
-"Default: 1 (enabled)\n"
-"Parameter: int\n"
-"C function: lame_set_original()\n"
-;
-
-static PyObject *
-mp3enc_set_original(self, args)
-    Encoder *self;
-    PyObject *args;
-{
-    int original;
-
-    if ( !PyArg_ParseTuple( args, "i", &original ) )
-        return NULL;
-
-    if ( 0 > lame_set_original( self->gfp, original ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set original bit" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_set_error_protection__doc__[] =
 "Add error protection (uses 2 bytes from each frame for CRC).\n"
 "Default: 0 (disabled)\n"
@@ -1389,23 +1335,6 @@ mp3enc_set_force_short_blocks(self, args)
 }
 
 
-static char mp3enc_get_total_frames__doc__[] =
-"Get estimate of the total number of frames to be encoded, only valid if\n"
-"the calling program set num_samples.\n"
-"C function: lame_get_totalframes()\n"
-;
-
-static PyObject *
-mp3enc_get_total_frames(Encoder *self, PyObject *args)
-{
-    int total_frames;
-
-    total_frames = lame_get_totalframes(self->gfp);
-
-    return Py_BuildValue("i", total_frames);
-}
-
-
 static char mp3enc_get_bitrate_histogram__doc__[] =
 "Get tuple of histogram dictionaries with bitrate/value keys.\n"
 "C functions: lame_bitrate_kbps(), lame_bitrate_hist()\n"
@@ -1628,10 +1557,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_preset__doc__                        },
     {"set_asm_optimizations", (PyCFunction)mp3enc_set_asm_optimizations,
 	METH_VARARGS, mp3enc_set_asm_optimizations__doc__             },
-    {"set_copyright", (PyCFunction)mp3enc_set_copyright,
-	METH_VARARGS, mp3enc_set_copyright__doc__                     },
-    {"set_original", (PyCFunction)mp3enc_set_original,
-	METH_VARARGS, mp3enc_set_original__doc__                      },
     {"set_error_protection", (PyCFunction)mp3enc_set_error_protection,
 	METH_VARARGS, mp3enc_set_error_protection__doc__              },
     {"set_extension", (PyCFunction)mp3enc_set_extension,
@@ -1694,8 +1619,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_no_short_blocks__doc__               },
     {"set_force_short_blocks", (PyCFunction)mp3enc_set_force_short_blocks,
 	METH_VARARGS, mp3enc_set_force_short_blocks__doc__            },
-    {"get_total_frames", (PyCFunction)mp3enc_get_total_frames,
-        METH_NOARGS, mp3enc_get_total_frames__doc__},
     {"get_bitrate_histogram", (PyCFunction)mp3enc_get_bitrate_histogram,
         METH_NOARGS, mp3enc_get_bitrate_histogram__doc__},
     {"get_bitrate_values", (PyCFunction)mp3enc_get_bitrate_values,
@@ -1796,7 +1719,13 @@ SETATTR_FLOAT(scale_left, lame_set_scale_left)
 GETATTR(scale_right, f)
 SETATTR_FLOAT(scale_right, lame_set_scale_right)
 
+SETATTR_INT(copyright, lame_set_copyright)
+GETATTR(copyright, i)
+SETATTR_INT(original, lame_set_original)
+GETATTR(original, i)
+
 GETATTR(frameNum, i)
+GETATTR(totalframes, i)
 
 GETATTR(mode, i)
 
@@ -1837,12 +1766,22 @@ static PyGetSetDef mp3enc_getseters[] = {
     {"scale_right",
      (getter)mp3enc_get_scale_right, (setter)mp3enc_set_scale_right,
     "Scale channel 1 (right) of the input by this amount before encoding.", NULL},
-    {"mode",
-     (getter)mp3enc_get_mode, (setter)mp3enc_setattr_mode,
-     "MPEG mode using MPEG_MODE_* constants.", NULL},
+    {"copyright",
+     (getter)mp3enc_get_copyright, (setter)mp3enc_set_copyright,
+     "Copyright bit.", NULL},
+    {"original",
+     (getter)mp3enc_get_original, (setter)mp3enc_set_original,
+     "Original bit.", NULL},
     {"frame_num",
      (getter)mp3enc_get_frameNum, (setter)NULL,
      "Number of frames encoded (read-only).", NULL},
+    {"total_frames",
+     (getter)mp3enc_get_totalframes, (setter)NULL,
+     "Get estimate of the total number of frames to be encoded, only valid\n"
+     "if the calling program set num_samples (read-only).", NULL},
+    {"mode",
+     (getter)mp3enc_get_mode, (setter)mp3enc_setattr_mode,
+     "MPEG mode using MPEG_MODE_* constants.", NULL},
     {NULL} /* Sentinel */
 };
 

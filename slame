@@ -61,7 +61,7 @@ def parse_args():
                       default=0,
                       help='Produce a more verbose output')
 
-    (opt, args) = parser.parse_args()
+    opt, args = parser.parse_args()
 
     # Process options
     if opt.abr and opt.cbr:
@@ -114,22 +114,21 @@ def is_readable_or_exit(file):
 
 def get_average(bitrate_hist, frames_processed):
     average = 0.0
-    for i in range(0, 14):
-        if 0 != bitrate_hist[i]['value']:
-            average += bitrate_hist[i]['bitrate'] \
-                * bitrate_hist[i]['value'] \
+    for item in bitrate_hist:
+        if 0 != item['value']:
+            average += item['bitrate'] * item['value'] \
                 / float(frames_processed)
 
     return average
 
 
 def print_stats(mp3, processed_bytes, raw_size, verbose, vbr, bitrate):
-
+    """Print out statistics of the encoding process."""
     bitrate_hist = mp3.get_bitrate_histogram()
     stmode_hist = mp3.get_bitrate_stereo_mode_histogram()
-    frames_processed = mp3.frame_num
-    frames_total = mp3.get_total_frames()
     stmode_total = mp3.get_stereo_mode_histogram()
+    frames_processed = mp3.frame_num
+    frames_total = mp3.total_frames
 
     if lame.VBR_MODE_DEFAULT == vbr:
         average_rate = get_average(bitrate_hist, frames_processed)
@@ -200,13 +199,13 @@ def main():
         sys.exit(1)
 
     # mp3file
-    mp3_file = file(mp3_name, "wb+")
+    mp3_file = open(mp3_name, 'wb+')
 
     # Prep the encoder object
     mp3 = lame.Encoder()
     mp3.num_channels = nchannels
     mp3.in_samplerate = samplerate
-    mp3.set_num_samples(long(nframes))
+    mp3.set_num_samples(nframes)
 
     mp3.set_vbr(vbr)
     if 8 <= bitrate <= 320:
