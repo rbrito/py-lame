@@ -54,6 +54,7 @@ typedef struct {
     int num_samples;
 } Encoder;
 
+static PyObject *EncoderError;
 
 /* BEGIN lame.encoder methods. */
 
@@ -66,7 +67,7 @@ mp3enc_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (NULL != self) {
         self->gfp = lame_init();
         if (NULL == self->gfp) {
-            PyErr_SetString((PyObject *)self, "Can't initialize LAME.");
+            PyErr_SetString(PyExc_MemoryError, "Can't initialize LAME.");
             Py_DECREF(self);
             return NULL;
         }
@@ -114,12 +115,11 @@ mp3enc_init(Encoder *self, PyObject *args)
     self->mp3_buf = PyMem_Malloc(1.25 * nsamples + 7200);
 
     if (NULL == self->mp3_buf) {
-        PyErr_SetString((PyObject *)self, "No MP3 buffer." );
-        return NULL;
+        return PyErr_NoMemory();
     }
 
-    if (0 > lame_init_params( self->gfp )) {
-        PyErr_SetString((PyObject *)self, "Can't initialize LAME parameters.");
+    if (0 > lame_init_params(self->gfp)) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't initialize LAME parameters.");
         return NULL;
     }
 
@@ -150,10 +150,8 @@ mp3enc_encode_interleaved(Encoder *self, PyObject *args)
 	unsigned char *new_buf;
 
 	new_buf = PyMem_Realloc(self->mp3_buf, 1.25*num_samples + 7200);
-	if ( NULL == new_buf ) {
-	    PyErr_NoMemory();
-	    return NULL;
-	}
+	if (NULL == new_buf)
+	    return PyErr_NoMemory();
 
 	self->mp3_buf = new_buf;
 	self->num_samples = num_samples;
@@ -171,23 +169,21 @@ mp3enc_encode_interleaved(Encoder *self, PyObject *args)
     if ( 0 > mp3_data_size ) {
         switch ( mp3_data_size ) {
             case -1:
-                PyErr_SetString( (PyObject *)self,
-                    "mp3buf too small (this shouldn't happen, please report)" );
+                PyErr_SetString(EncoderError,
+                    "mp3buf too small (this shouldn't happen, please report)");
                 return NULL;
             case -2:
-                PyErr_NoMemory();
-                return NULL;
+                return PyErr_NoMemory();
             case -3:
-                PyErr_SetString( (PyObject *)self,
-                    "init_parameters() not called (a bug in your program)" );
+                PyErr_SetString(EncoderError,
+                    "init_parameters() not called (a bug in your program)");
                 return NULL;
             case -4:
-                PyErr_SetString( (PyObject *)self,
-                    "psycho acoustic problems" );
+                PyErr_SetString(EncoderError, "psycho acoustic problems");
                 return NULL;
             default:
-                PyErr_SetString( (PyObject *)self,
-                    "unknown error, please report" );
+                PyErr_Format(EncoderError, "unknown error %d, please report",
+                             mp3_data_size);
                 return NULL;
         }
     }
@@ -215,23 +211,22 @@ mp3enc_flush_buffers(Encoder *self, PyObject *args)
     if ( 0 > mp3_buf_fill_size ) {
         switch ( mp3_buf_fill_size ) {
             case -1:
-                PyErr_SetString( (PyObject *)self,
+                PyErr_SetString(EncoderError,
                     "mp3buf too small (this shouldn't happen, please report)" );
                 return NULL;
             case -2:
                 PyErr_NoMemory();
                 return NULL;
             case -3:
-                PyErr_SetString( (PyObject *)self,
-                    "init_parameters() not called (a bug in your program)" );
+                PyErr_SetString(EncoderError,
+                    "init_parameters() not called (a bug in your program)");
                 return NULL;
             case -4:
-                PyErr_SetString( (PyObject *)self,
-                    "psycho acoustic problems" );
+                PyErr_SetString(EncoderError, "psycho acoustic problems");
                 return NULL;
             default:
-                PyErr_SetString( (PyObject *)self,
-                    "unknown error, please report" );
+                PyErr_Format(EncoderError, "unknown error %d, please report",
+                             mp3_buf_fill_size);
                 return NULL;
         }
     }
@@ -1952,9 +1947,18 @@ init_lame()
     if (NULL == m)
         return;
 
-    /* Register the lame.encoder object type */
+    /* Register the lame.Encoder object type */
     Py_INCREF(&EncoderType);
     PyModule_AddObject(m, "Encoder", (PyObject *)&EncoderType);
+
+    /* Set up the exceptions. */
+    EncoderError = PyErr_NewException("_lame.EncoderError",
+                                      PyExc_Exception, NULL);
+    if (EncoderError == NULL)
+        return;
+    Py_INCREF(EncoderError);
+    if (PyModule_AddObject(m, "EncoderError", EncoderError) < 0)
+        return;
 
     /* Add some symbolic constants to the module */
     /* String version constants for convenience. */
