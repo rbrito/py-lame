@@ -203,7 +203,7 @@ def main():
     mp3_file = file(mp3_name, "wb+")
 
     # Prep the encoder object
-    mp3 = lame.encoder()
+    mp3 = lame.Encoder()
     mp3.num_channels = nchannels
     mp3.set_in_samplerate(samplerate)
     mp3.set_num_samples(long(nframes))

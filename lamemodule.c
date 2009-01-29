@@ -29,11 +29,16 @@
 
 #include <Python.h>
 #include <lame/lame.h>
-#include <stdio.h>
+
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
 
 
 static void
-quiet_lib_printf( const char *format, va_list ap )
+quiet_lib_printf(const char *format, va_list ap)
 {
     return;
 }
@@ -44,9 +49,9 @@ quiet_lib_printf( const char *format, va_list ap )
 typedef struct {
     PyObject_HEAD
     /* XXXX Add your own stuff here */
-    lame_global_flags*  gfp;
-    unsigned char*      mp3_buf;
-    int                 num_samples;
+    lame_global_flags *gfp;
+    unsigned char *mp3_buf;
+    int num_samples;
 } Encoder;
 
 
@@ -89,7 +94,7 @@ mp3enc_dealloc(Encoder* self)
         self->mp3_buf = NULL;
     }
 
-    self->ob_type->tp_free((PyObject*)self);
+    self->ob_type->tp_free((PyObject *)self);
 }
 
 
@@ -154,12 +159,14 @@ mp3enc_encode_interleaved(Encoder *self, PyObject *args)
 	self->num_samples = num_samples;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     mp3_data_size = lame_encode_buffer_interleaved(
                         self->gfp,
                         pcm,
                         num_samples / (num_channels * 2), /* 16bit! */
                         self->mp3_buf,
-                        self->num_samples );
+                        self->num_samples);
+    Py_END_ALLOW_THREADS
 
     if ( 0 > mp3_data_size ) {
         switch ( mp3_data_size ) {
@@ -178,14 +185,6 @@ mp3enc_encode_interleaved(Encoder *self, PyObject *args)
                 PyErr_SetString( (PyObject *)self,
                     "psycho acoustic problems" );
                 return NULL;
-            case -5:
-                PyErr_SetString( (PyObject *)self,
-                    "ogg cleanup encoding error (this shouldn't happen, there's no ogg support)" );
-                return NULL;
-            case -6:
-                PyErr_SetString( (PyObject *)self,
-                    "ogg frame encoding error (this shouldn't happen, there's no ogg support)" );
-                return NULL;
             default:
                 PyErr_SetString( (PyObject *)self,
                     "unknown error, please report" );
@@ -193,7 +192,7 @@ mp3enc_encode_interleaved(Encoder *self, PyObject *args)
         }
     }
 
-    return Py_BuildValue( "s#", self->mp3_buf, mp3_data_size );
+    return Py_BuildValue("s#", self->mp3_buf, mp3_data_size);
 }
 
 
@@ -208,8 +207,10 @@ mp3enc_flush_buffers(Encoder *self, PyObject *args)
 {
     int mp3_buf_fill_size;
 
-    mp3_buf_fill_size = lame_encode_flush( self->gfp, self->mp3_buf,
-                                           self->num_samples );
+    Py_BEGIN_ALLOW_THREADS
+    mp3_buf_fill_size = lame_encode_flush(self->gfp, self->mp3_buf,
+                                          self->num_samples);
+    Py_END_ALLOW_THREADS
 
     if ( 0 > mp3_buf_fill_size ) {
         switch ( mp3_buf_fill_size ) {
@@ -227,14 +228,6 @@ mp3enc_flush_buffers(Encoder *self, PyObject *args)
             case -4:
                 PyErr_SetString( (PyObject *)self,
                     "psycho acoustic problems" );
-                return NULL;
-            case -5:
-                PyErr_SetString( (PyObject *)self,
-                    "ogg cleanup encoding error (this shouldn't happen, there's no ogg support)" );
-                return NULL;
-            case -6:
-                PyErr_SetString( (PyObject *)self,
-                    "ogg frame encoding error (this shouldn't happen, there's no ogg support)" );
                 return NULL;
             default:
                 PyErr_SetString( (PyObject *)self,
@@ -256,9 +249,7 @@ static char mp3enc_set_num_samples__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_num_samples(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_num_samples(Encoder *self, PyObject *args)
 {
     unsigned long num_samples;
 
@@ -282,9 +273,7 @@ static char mp3enc_set_out_samplerate__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_out_samplerate(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_out_samplerate(Encoder *self, PyObject *args)
 {
     int out_samplerate;
 
@@ -309,9 +298,7 @@ static char mp3enc_set_analysis__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_analysis(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_analysis(Encoder *self, PyObject *args)
 {
     int analysis;
 
@@ -336,9 +323,7 @@ static char mp3enc_set_write_vbr_tag__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_write_vbr_tag(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_write_vbr_tag(Encoder *self, PyObject *args)
 {
     int write_vbr_tag;
 
@@ -1491,38 +1476,38 @@ mp3enc_get_bitrate_histogram(Encoder *self, PyObject *args)
     int bitrate_count[14];
     int bitrate_value[14];
 
-    lame_bitrate_kbps( self->gfp, bitrate_value );
-    lame_bitrate_hist( self->gfp, bitrate_count );
+    lame_bitrate_kbps(self->gfp, bitrate_value);
+    lame_bitrate_hist(self->gfp, bitrate_count);
 
-    return Py_BuildValue( "({sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi})",
-			  "bitrate", bitrate_value[ 0],
-			  "value"  , bitrate_count[ 0],
-			  "bitrate", bitrate_value[ 1],
-			  "value"  , bitrate_count[ 1],
-			  "bitrate", bitrate_value[ 2],
-			  "value"  , bitrate_count[ 2],
-			  "bitrate", bitrate_value[ 3],
-			  "value"  , bitrate_count[ 3],
-			  "bitrate", bitrate_value[ 4],
-			  "value"  , bitrate_count[ 4],
-			  "bitrate", bitrate_value[ 5],
-			  "value"  , bitrate_count[ 5],
-			  "bitrate", bitrate_value[ 6],
-			  "value"  , bitrate_count[ 6],
-			  "bitrate", bitrate_value[ 7],
-			  "value"  , bitrate_count[ 7],
-			  "bitrate", bitrate_value[ 8],
-			  "value"  , bitrate_count[ 8],
-			  "bitrate", bitrate_value[ 9],
-			  "value"  , bitrate_count[ 9],
-			  "bitrate", bitrate_value[10],
-			  "value"  , bitrate_count[10],
-			  "bitrate", bitrate_value[11],
-			  "value"  , bitrate_count[11],
-			  "bitrate", bitrate_value[12],
-			  "value"  , bitrate_count[12],
-			  "bitrate", bitrate_value[13],
-			  "value"  , bitrate_count[13] );
+    return Py_BuildValue("({sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi}{sisi})",
+                         "bitrate", bitrate_value[ 0],
+                         "value"  , bitrate_count[ 0],
+                         "bitrate", bitrate_value[ 1],
+                         "value"  , bitrate_count[ 1],
+                         "bitrate", bitrate_value[ 2],
+                         "value"  , bitrate_count[ 2],
+                         "bitrate", bitrate_value[ 3],
+                         "value"  , bitrate_count[ 3],
+                         "bitrate", bitrate_value[ 4],
+                         "value"  , bitrate_count[ 4],
+                         "bitrate", bitrate_value[ 5],
+                         "value"  , bitrate_count[ 5],
+                         "bitrate", bitrate_value[ 6],
+                         "value"  , bitrate_count[ 6],
+                         "bitrate", bitrate_value[ 7],
+                         "value"  , bitrate_count[ 7],
+                         "bitrate", bitrate_value[ 8],
+                         "value"  , bitrate_count[ 8],
+                         "bitrate", bitrate_value[ 9],
+                         "value"  , bitrate_count[ 9],
+                         "bitrate", bitrate_value[10],
+                         "value"  , bitrate_count[10],
+                         "bitrate", bitrate_value[11],
+                         "value"  , bitrate_count[11],
+                         "bitrate", bitrate_value[12],
+                         "value"  , bitrate_count[12],
+                         "bitrate", bitrate_value[13],
+                         "value"  , bitrate_count[13]);
 }
 
 
@@ -1678,9 +1663,7 @@ static char mp3enc_write_tags__doc__[] =
 ;
 
 static PyObject *
-mp3enc_write_tags(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_write_tags(Encoder *self, PyObject *args)
 {
     PyObject *object;
     FILE *mp3_file;
@@ -1797,8 +1780,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_no_short_blocks__doc__               },
     {"set_force_short_blocks", (PyCFunction)mp3enc_set_force_short_blocks,
 	METH_VARARGS, mp3enc_set_force_short_blocks__doc__            },
-    {"get_frame_num", (PyCFunction)mp3enc_get_frame_num,
-        METH_NOARGS, mp3enc_get_frame_num__doc__},
     {"get_total_frames", (PyCFunction)mp3enc_get_total_frames,
         METH_NOARGS, mp3enc_get_total_frames__doc__},
     {"get_bitrate_histogram", (PyCFunction)mp3enc_get_bitrate_histogram,
@@ -1928,7 +1909,7 @@ static PyGetSetDef mp3enc_getseters[] = {
 static PyTypeObject EncoderType = {
         PyObject_HEAD_INIT(NULL)
         0,                              /* ob_size */
-        "lame.encoder",                 /* tp_name */
+        "_lame.Encoder",                /* tp_name */
         sizeof(Encoder),                /* tp_basicsize */
         0,                              /* tp_itemsize */
         /* methods */
@@ -2027,7 +2008,7 @@ init_lame()
 
     /* Register the lame.encoder object type */
     Py_INCREF(&EncoderType);
-    PyModule_AddObject(m, "encoder", (PyObject *)&EncoderType);
+    PyModule_AddObject(m, "Encoder", (PyObject *)&EncoderType);
 
     /* Add some symbolic constants to the module */
     /* String version constants for convenience. */
