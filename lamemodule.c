@@ -1641,7 +1641,8 @@ generic_set_int(Encoder *self, PyObject *value, const char *attr,
                 int (fptr)(lame_global_flags*, int))
 {
     if (value == NULL) {
-        PyErr_Format(PyExc_TypeError, "Cannot delete the '%s' attribute.", attr);
+        PyErr_Format(PyExc_AttributeError, "Cannot delete the '%s' attribute.",
+                     attr);
         return -1;
     }
 
@@ -1663,7 +1664,8 @@ generic_set_float(Encoder *self, PyObject *value, const char *attr,
                   int (fptr)(lame_global_flags*, float))
 {
     if (value == NULL) {
-        PyErr_Format(PyExc_TypeError, "Cannot delete the '%s' attribute.", attr);
+        PyErr_Format(PyExc_AttributeError, "Cannot delete the '%s' attribute.",
+                     attr);
         return -1;
     }
 
@@ -1733,7 +1735,8 @@ static int
 mp3enc_setattr_mode(Encoder *self, PyObject *value, void *closure)
 {
     if (value == NULL) {
-        PyErr_SetString(PyExc_TypeError, "Cannot delete the 'mode' attribute.");
+        PyErr_SetString(PyExc_AttributeError,
+                        "Cannot delete the 'mode' attribute.");
         return -1;
     }
 
