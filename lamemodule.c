@@ -144,7 +144,7 @@ mp3enc_encode_interleaved(Encoder *self, PyObject *args)
     if ( self->num_samples < num_samples ) {
 	unsigned char *new_buf;
 
-	new_buf = PyMem_realloc(self->mp3_buf, 1.25*num_samples + 7200);
+	new_buf = PyMem_Realloc(self->mp3_buf, 1.25*num_samples + 7200);
 	if ( NULL == new_buf ) {
 	    PyErr_NoMemory();
 	    return NULL;
@@ -1463,22 +1463,6 @@ mp3enc_set_force_short_blocks(self, args)
 }
 
 
-static char mp3enc_get_frame_num__doc__[] =
-"Get number of encoded frames so far.\n"
-"C function: lame_get_frameNum()"
-;
-
-static PyObject *
-mp3enc_get_frame_num(Encoder *self, PyObject *args)
-{
-    int frame_num;
-
-    frame_num = lame_get_frameNum(self->gfp);
-
-    return Py_BuildValue("i", frame_num);
-}
-
-
 static char mp3enc_get_total_frames__doc__[] =
 "Get estimate of the total number of frames to be encoded, only valid if\n"
 "the calling program set num_samples.\n"
@@ -1916,22 +1900,27 @@ SETATTR_FLOAT(scale_left, lame_set_scale_left)
 GETATTR(scale_right, f)
 SETATTR_FLOAT(scale_right, lame_set_scale_right)
 
+GETATTR(frameNum, i)
+
 static PyGetSetDef mp3enc_getseters[] = {
     {"in_samplerate",
-        (getter)mp3enc_get_in_samplerate, (setter)mp3enc_set_in_samplerate,
+     (getter)mp3enc_get_in_samplerate, (setter)mp3enc_set_in_samplerate,
     "Input sample rate in Hz.", NULL},
     {"num_channels",
-        (getter)mp3enc_get_num_channels, (setter)mp3enc_set_num_channels,
+     (getter)mp3enc_get_num_channels, (setter)mp3enc_set_num_channels,
     "Number of channels in the input stream.", NULL},
     {"scale",
-        (getter)mp3enc_get_scale, (setter)mp3enc_set_scale,
+     (getter)mp3enc_get_scale, (setter)mp3enc_set_scale,
     "Scale the input by this amount before encoding.", NULL},
     {"scale_left",
-        (getter)mp3enc_get_scale_left, (setter)mp3enc_set_scale_left,
+     (getter)mp3enc_get_scale_left, (setter)mp3enc_set_scale_left,
     "Scale channel 0 (left) of the input by this amount before encoding.", NULL},
     {"scale_right",
-        (getter)mp3enc_get_scale_right, (setter)mp3enc_set_scale_right,
+     (getter)mp3enc_get_scale_right, (setter)mp3enc_set_scale_right,
     "Scale channel 1 (right) of the input by this amount before encoding.", NULL},
+    {"frame_num",
+     (getter)mp3enc_get_frameNum, (setter)NULL,
+     "Number of frames encoded (read-only).", NULL},
     {NULL} /* Sentinel */
 };
 
