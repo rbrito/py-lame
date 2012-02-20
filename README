@@ -1,32 +1,46 @@
+# Python bindings for `libmp3lame`
 
- Python bindings for libmp3lame
+## Using the module
 
- Use the demo app (slame: Simple LAME) as documentation at the moment.
+These bindings of Python for the LAME library are in an embrionary stage at
+the moment.
 
- API contains the implemented methods (subject to change, feel free to
- send comments about it).
+There is no documentation at the moment, but you can, to partially remedy
+the situation, use the sample application `slame` ("Simple LAME) to know how
+to use these bindings.
 
- ******************
- *                *
- * ALPHA VERSION! *
- *                *
- ******************
+This module is a thin Python wrapper around the C implementation of LAME,
+but not all of the functions in C are implemented (this is subject to
+change, feel free to send comments about it).
 
- Don't expect much yet.
+To restate, this is
 
- If you don't know what to do with the files:
-   delete them, they aren't fully usable yet.
+    ******************
+    *                *
+    * ALPHA VERSION! *
+    *                *
+    ******************
 
+Don't expect much yet.
 
- Alexander@Leidinger.net
-
-
+## Building and installing
 
 Build module:
+
 	./setup.py build
 
 Install module:
+
 	./setup.py install
 
--- 
+## Authors
+
+* Alexander Leidinger (Alexander@Leidinger.net)
+* Kyle VanderBeek (kylev@users.sf.net)
+
+## License
+
+This module is licensed under a BSD license.
+
+----
 $Id$
