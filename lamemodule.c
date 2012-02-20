@@ -248,7 +248,7 @@ mp3enc_set_num_samples(Encoder *self, PyObject *args)
 {
     unsigned long num_samples;
 
-    if ( !PyArg_ParseTuple( args, "l", &num_samples ) )
+    if ( !PyArg_ParseTuple( args, "k", &num_samples ) )
         return NULL;
 
     if ( 0 > lame_set_num_samples( self->gfp, num_samples ) ) {
