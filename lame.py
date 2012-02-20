@@ -27,5 +27,7 @@ __version__ = module_version
 
 
 def url():
-    """Deprecated, use lame.LAME_URL instead."""
+    """
+    Deprecated (will be removed in LAME 3.100), use lame.LAME_URL instead.
+    """
     return LAME_URL

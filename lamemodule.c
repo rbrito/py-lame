@@ -1091,6 +1091,7 @@ static char mp3enc_set_athaa_loudness_approximation__doc__[] =
 "Default: XXX\n"
 "Parameter: int  XXX should be lame.YYY\n"
 "C function: lame_set_athaa_loudapprox()\n"
+"WARNING: This function is deprecated and will be removed as of LAME 3.100.\n"
 ;
 
 static PyObject *
