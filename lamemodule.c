@@ -343,9 +343,7 @@ static char mp3enc_set_quality__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_quality(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_quality(Encoder *self, PyObject *args)
 {
     int quality;
 
@@ -370,9 +368,7 @@ static char mp3enc_set_free_format__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_free_format(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_free_format(Encoder *self, PyObject *args)
 {
     int free_format;
 
@@ -397,9 +393,7 @@ static char mp3enc_set_bitrate__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_bitrate(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_bitrate(Encoder *self, PyObject *args)
 {
     int brate;
 
@@ -424,9 +418,7 @@ static char mp3enc_set_compression_ratio__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_compression_ratio(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_compression_ratio(Encoder *self, PyObject *args)
 {
     float compression_ratio;
 
@@ -450,9 +442,7 @@ static char mp3enc_set_preset__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_preset(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_preset(Encoder *self, PyObject *args)
 {
     int preset;
 
@@ -477,9 +467,7 @@ static char mp3enc_set_asm_optimizations__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_asm_optimizations(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_asm_optimizations(Encoder *self, PyObject *args)
 {
     int val1, val2;
 
@@ -504,9 +492,7 @@ static char mp3enc_set_error_protection__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_error_protection(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_error_protection(Encoder *self, PyObject *args)
 {
     int error_protection;
 
@@ -531,9 +517,7 @@ static char mp3enc_set_extension__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_extension(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_extension(Encoder *self, PyObject *args)
 {
     int extension;
 
@@ -558,9 +542,7 @@ static char mp3enc_set_strict_iso__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_strict_iso(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_strict_iso(Encoder *self, PyObject *args)
 {
     int strict_iso;
 
@@ -585,9 +567,7 @@ static char mp3enc_set_disable_reservoir__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_disable_reservoir(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_disable_reservoir(Encoder *self, PyObject *args)
 {
     int disable_reservoir;
 
@@ -612,9 +592,7 @@ static char mp3enc_set_exp_quantization__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_exp_quantization(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_exp_quantization(Encoder *self, PyObject *args)
 {
     int quantization;
 
@@ -639,9 +617,7 @@ static char mp3enc_set_exp_y__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_exp_y(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_exp_y(Encoder *self, PyObject *args)
 {
     int y;
 
@@ -666,9 +642,7 @@ static char mp3enc_set_exp_z__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_exp_z(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_exp_z(Encoder *self, PyObject *args)
 {
     int z;
 
@@ -693,9 +667,7 @@ static char mp3enc_set_exp_nspsytune__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_exp_nspsytune(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_exp_nspsytune(Encoder *self, PyObject *args)
 {
     int nspsytune;
 
@@ -721,9 +693,7 @@ static char mp3enc_set_vbr__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_vbr(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_vbr(Encoder *self, PyObject *args)
 {
     int vbr;
 
@@ -748,9 +718,7 @@ static char mp3enc_set_vbr_quality__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_vbr_quality(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_vbr_quality(Encoder *self, PyObject *args)
 {
     int vbr_quality;
 
@@ -775,9 +743,7 @@ static char mp3enc_set_abr_bitrate__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_abr_bitrate(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_abr_bitrate(Encoder *self, PyObject *args)
 {
     int abr_bitrate;
 
@@ -802,9 +768,7 @@ static char mp3enc_set_vbr_min_bitrate__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_vbr_min_bitrate(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_vbr_min_bitrate(Encoder *self, PyObject *args)
 {
     int vbr_min_bitrate;
 
@@ -829,9 +793,7 @@ static char mp3enc_set_vbr_max_bitrate__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_vbr_max_bitrate(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_vbr_max_bitrate(Encoder *self, PyObject *args)
 {
     int vbr_max_bitrate;
 
@@ -857,9 +819,7 @@ static char mp3enc_set_vbr_min_enforce__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_vbr_min_enforce(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_vbr_min_enforce(Encoder *self, PyObject *args)
 {
     int vbr_min_enforce;
 
@@ -884,9 +844,7 @@ static char mp3enc_set_lowpass_frequency__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_lowpass_frequency(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_lowpass_frequency(Encoder *self, PyObject *args)
 {
     int lowpass_frequency;
 
@@ -911,9 +869,7 @@ static char mp3enc_set_lowpass_width__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_lowpass_width(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_lowpass_width(Encoder *self, PyObject *args)
 {
     int lowpass_width;
 
@@ -938,9 +894,7 @@ static char mp3enc_set_highpass_frequency__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_highpass_frequency(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_highpass_frequency(Encoder *self, PyObject *args)
 {
     int highpass_frequency;
 
@@ -965,9 +919,7 @@ static char mp3enc_set_highpass_width__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_highpass_width(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_highpass_width(Encoder *self, PyObject *args)
 {
     int highpass_width;
 
@@ -992,9 +944,7 @@ static char mp3enc_set_ath_for_masking_only__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_ath_for_masking_only(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_ath_for_masking_only(Encoder *self, PyObject *args)
 {
     int ath_for_masking_only;
 
@@ -1019,9 +969,7 @@ static char mp3enc_set_ath_for_short_only__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_ath_for_short_only(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_ath_for_short_only(Encoder *self, PyObject *args)
 {
     int ath_for_short_only;
 
@@ -1046,9 +994,7 @@ static char mp3enc_set_ath_disable__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_ath_disable(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_ath_disable(Encoder *self, PyObject *args)
 {
     int ath_disable;
 
@@ -1073,9 +1019,7 @@ static char mp3enc_set_ath_type__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_ath_type(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_ath_type(Encoder *self, PyObject *args)
 {
     int ath_type;
 
@@ -1100,9 +1044,7 @@ static char mp3enc_set_ath_lower__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_ath_lower(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_ath_lower(Encoder *self, PyObject *args)
 {
     int ath_lower;
 
@@ -1127,9 +1069,7 @@ static char mp3enc_set_athaa_type__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_athaa_type(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_athaa_type(Encoder *self, PyObject *args)
 {
     int athaa_type;
 
@@ -1154,9 +1094,7 @@ static char mp3enc_set_athaa_loudness_approximation__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_athaa_loudness_approximation(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_athaa_loudness_approximation(Encoder *self, PyObject *args)
 {
     int athaa_loudness_approximation;
 
@@ -1181,9 +1119,7 @@ static char mp3enc_set_athaa_sensitivity__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_athaa_sensitivity(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_athaa_sensitivity(Encoder *self, PyObject *args)
 {
     int athaa_sensitivity;
 
@@ -1208,9 +1144,7 @@ static char mp3enc_set_allow_blocktype_difference__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_allow_blocktype_difference(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_allow_blocktype_difference(Encoder *self, PyObject *args)
 {
     int allow_blocktype_difference;
 
@@ -1235,9 +1169,7 @@ static char mp3enc_set_use_temporal_masking__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_use_temporal_masking(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_use_temporal_masking(Encoder *self, PyObject *args)
 {
     int use_temporal_masking;
 
@@ -1262,9 +1194,7 @@ static char mp3enc_set_inter_channel_ratio__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_inter_channel_ratio(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_inter_channel_ratio(Encoder *self, PyObject *args)
 {
     float inter_channel_ratio;
 
@@ -1289,9 +1219,7 @@ static char mp3enc_set_no_short_blocks__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_no_short_blocks(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_no_short_blocks(Encoder *self, PyObject *args)
 {
     int no_short_blocks;
 
@@ -1316,9 +1244,7 @@ static char mp3enc_set_force_short_blocks__doc__[] =
 ;
 
 static PyObject *
-mp3enc_set_force_short_blocks(self, args)
-    Encoder *self;
-    PyObject *args;
+mp3enc_set_force_short_blocks(Encoder *self, PyObject *args)
 {
     int force_short_blocks;
 
@@ -1877,7 +1803,7 @@ static char lame_module_documentation[] =
 ;
 
 PyMODINIT_FUNC
-init_lame()
+init_lame(void)
 {
     PyObject *m;
 
