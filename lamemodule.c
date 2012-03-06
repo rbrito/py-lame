@@ -1086,32 +1086,6 @@ mp3enc_set_athaa_type(Encoder *self, PyObject *args)
 }
 
 
-static char mp3enc_set_athaa_loudness_approximation__doc__[] =
-"Choose the loudness approximation used by the ATH adaptive auto leveling.\n"
-"Default: XXX\n"
-"Parameter: int  XXX should be lame.YYY\n"
-"C function: lame_set_athaa_loudapprox()\n"
-"WARNING: This function is deprecated and will be removed as of LAME 3.100.\n"
-;
-
-static PyObject *
-mp3enc_set_athaa_loudness_approximation(Encoder *self, PyObject *args)
-{
-    int athaa_loudness_approximation;
-
-    if ( !PyArg_ParseTuple( args, "i", &athaa_loudness_approximation ) )
-        return NULL;
-
-    if ( 0 > lame_set_athaa_loudapprox( self->gfp, athaa_loudness_approximation ) ) {
-        PyErr_SetString( (PyObject *)self, "can't set loudness approximation" );
-        return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-
 static char mp3enc_set_athaa_sensitivity__doc__[] =
 "Adjust the point below which adaptive ATH level adjustment occurs (in dB).\n"
 "Default: 0\n"
@@ -1532,8 +1506,6 @@ static struct PyMethodDef mp3enc_methods[] = {
 	METH_VARARGS, mp3enc_set_ath_lower__doc__                     },
     {"set_athaa_type", (PyCFunction)mp3enc_set_athaa_type,
 	METH_VARARGS, mp3enc_set_athaa_type__doc__                    },
-    {"set_athaa_loudness_approximation", (PyCFunction)mp3enc_set_athaa_loudness_approximation,
-	METH_VARARGS, mp3enc_set_athaa_loudness_approximation__doc__  },
     {"set_athaa_sensitivity", (PyCFunction)mp3enc_set_athaa_sensitivity,
 	METH_VARARGS, mp3enc_set_athaa_sensitivity__doc__             },
     {"set_allow_blocktype_difference", (PyCFunction)mp3enc_set_allow_blocktype_difference,

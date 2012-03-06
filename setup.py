@@ -9,7 +9,6 @@ pylame_version_str = '"%s"' % (pylame_version,)
 lame_module = Extension('_lame',
                         ['lamemodule.c'],
                         define_macros=[('PYLAME_VERSION', pylame_version_str)],
-                        undef_macros=['DEPRECATED_OR_OBSOLETE_CODE_REMOVED'],
                         include_dirs=['/usr/local/include'],
                         library_dirs=['/usr/local/lib'],
                         libraries=['mp3lame'],
