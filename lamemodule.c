@@ -1528,7 +1528,7 @@ static struct PyMethodDef mp3enc_methods[] = {
         METH_NOARGS, mp3enc_get_stereo_mode_histogram__doc__},
     {"write_tags", (PyCFunction)mp3enc_write_tags,
 	METH_VARARGS, mp3enc_write_tags__doc__                        },
-    {NULL,    NULL}  /* Sentinel */
+    {NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
 /* "Generic" setters for int and float values of the lame encoder that
@@ -1684,7 +1684,7 @@ static PyGetSetDef mp3enc_getseters[] = {
     {"mode",
      (getter)mp3enc_get_mode, (setter)mp3enc_setattr_mode,
      "MPEG mode using MPEG_MODE_* constants.", NULL},
-    {NULL} /* Sentinel */
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 /* Encoder type declaration */
