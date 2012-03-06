@@ -3,12 +3,11 @@
 from distutils.core import setup
 from distutils.extension import Extension
 
-pylame_version = '0.1'
-pylame_version_str = '"%s"' % (pylame_version,)
+pylame_version = r'"\"0.1\""'
 
 lame_module = Extension('_lame',
                         ['lamemodule.c'],
-                        define_macros=[('PYLAME_VERSION', pylame_version_str)],
+                        define_macros=[('PYLAME_VERSION', pylame_version)],
                         include_dirs=['/usr/local/include'],
                         library_dirs=['/usr/local/lib'],
                         libraries=['mp3lame'],
